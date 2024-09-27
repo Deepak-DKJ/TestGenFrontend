@@ -26,7 +26,6 @@ import FormControl from "@mui/material/FormControl";
 
 import Alert from "@mui/material/Alert";
 
-import { useNotifications } from "@toolpad/core/useNotifications";
 
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -81,7 +80,6 @@ const McqsPage = () => {
   const [file, setFile] = useState([]);
   const [maxRange, setMaxRange] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
-  const notifications = useNotifications();
   const [genQsnsCount, setGenQsnsCount] = useState(0)
   const [alert, setAlert] = useState({
     vis: false,

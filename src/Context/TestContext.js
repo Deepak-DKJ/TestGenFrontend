@@ -9,7 +9,7 @@ const TestProvider = ({children}) => {
    
     const [testDuration, setTestDuration] = useState(5)
 
-    const [baseUrl, setBaseUrl] = useState('http://localhost:8000/api')
+    const [baseUrl, setBaseUrl] = useState('https://test-gen-server.vercel.app/api')
     return(
         <TestContext.Provider value={{inputData,setInputData, numOfQs, setNumOfQs, qsnList, setQsnList, testDuration, setTestDuration, baseUrl}}>
             {children}
