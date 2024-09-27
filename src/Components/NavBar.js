@@ -204,8 +204,9 @@ const NavBar = () => {
     const [hover, setHover] = React.useState(-1);
 
     const userData = JSON.parse(localStorage.getItem("userdata"))
-
-    const name = userData.name.split(" ")
+    let name = "NA"
+    if(userData)
+    name = userData.name.split(" ")
     let userName = ""
     if (name.length > 1) {
         userName += (name[0][0] + name[1][0])

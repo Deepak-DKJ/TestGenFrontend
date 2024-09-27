@@ -132,7 +132,9 @@ const McqsPage = () => {
 
   const userData = JSON.parse(localStorage.getItem("userdata"))
 
-  const name = userData.name
+  let name = "NA"
+  if(userData)
+    name =  userData.name
 
   const handleTextChange = (event) => {
     let str = event.target.value;
