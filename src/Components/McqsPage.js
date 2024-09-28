@@ -237,7 +237,16 @@ const McqsPage = () => {
       console.log("Error: ", err);
     }
   }
-
+  const handlePaste = () => {
+    navigator.clipboard.readText()
+  .then(text => {
+    setInputData(text)
+  })
+  .catch(err => {
+    console.error('Failed to read clipboard contents: ', err);
+  });
+   
+  }
 
   const [open, setOpen] = React.useState(false);
 
@@ -510,7 +519,13 @@ const McqsPage = () => {
               variant="h6"
               sx={{ color: "white", marginBottom: "10px" }}
             >
-              Enter your text below for generating questions:
+              Enter your text below & click on generate:
+              <Button  sx={{ margin: "5px" }} variant="contained" size="small" color="primary" onClick={handlePaste}>
+                Paste Text
+              </Button>
+              <Button sx={{ margin: "5px" }}  variant="contained" size="small" color="primary" onClick={() => setInputData("")}>
+                Clear Text
+              </Button>
             </Typography>
             <TextField
               id="outlined-multiline-static"
