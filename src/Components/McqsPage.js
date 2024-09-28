@@ -19,7 +19,7 @@ import Snackbar from "@mui/material/Snackbar";
 import { useNavigate } from "react-router-dom";
 import { Slide } from "@mui/material";
 import axios from "axios";
-import { CubeSpinner } from "react-spinners-kit";
+import { CubeSpinner, SwapSpinner } from "react-spinners-kit";
 import InputLabel from "@mui/material/InputLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import FormControl from "@mui/material/FormControl";
@@ -80,6 +80,7 @@ const McqsPage = () => {
   const [file, setFile] = useState([]);
   const [maxRange, setMaxRange] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
+  const [read, setRead] = useState(false)
   const [genQsnsCount, setGenQsnsCount] = useState(0)
   const [alert, setAlert] = useState({
     vis: false,
@@ -204,7 +205,8 @@ const McqsPage = () => {
 
   const handleReadFile = async () => {
     try {
-      // setIsLoading(true);
+      setRead(true)
+      setIsLoading(true);
     //  console.log(file[0])
       let formData = new FormData();
       formData.append("pdfFile", file[0]);
@@ -227,9 +229,11 @@ const McqsPage = () => {
       setInputData(data.data)
       // const dat = response.text();
       // console.log(data.data)
-      // setIsLoading(false);
+      setIsLoading(false);
+      setRead(false)
     } catch (err) {
-      // setIsLoading(false);
+      setIsLoading(false);
+      setRead(false)
       console.log("Error: ", err);
     }
   }
@@ -349,7 +353,12 @@ const McqsPage = () => {
             zIndex: 1300, // Ensure it overlays other elements
           }}
         >
-          <CubeSpinner size={50} frontColor="cyan" />
+          {read === true ? (
+            <SwapSpinner />
+          ) : (
+             <CubeSpinner size={50} frontColor="cyan" />
+          )}
+         
         </Box>
       )}
 
