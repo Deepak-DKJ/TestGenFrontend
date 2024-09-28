@@ -177,6 +177,7 @@ const McqsPage = () => {
         headers: {
           Token: authToken, // Set the Authorization header with Bearer token
           withCredentials: true,
+          'Access-Control-Allow-Origin': *, 
         },
       });
       const dat = response.data;
