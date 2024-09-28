@@ -354,7 +354,7 @@ const McqsPage = () => {
           }}
         >
           {read === true ? (
-            <SwapSpinner size={40} frontColor="cyan" />
+            <SwapSpinner size={50} color="cyan" />
           ) : (
              <CubeSpinner size={50} frontColor="cyan" />
           )}
