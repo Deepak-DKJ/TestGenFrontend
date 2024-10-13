@@ -10,8 +10,10 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar'
 import { Slide } from '@mui/material';
+import { RingSpinner } from 'react-spinners-kit';
 
 const Login = () => {
+  const [loading, setLoading] = useState(false)
   const { baseUrl, setUserData } = useContext(TestContext)
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
@@ -27,6 +29,7 @@ const Login = () => {
       "email": email,
       "password": password
     }
+    setLoading(true)
 
     try {
       const response = await axios.post(`${baseUrl}/auth/login`, data);
@@ -37,20 +40,41 @@ const Login = () => {
       // console.log(JSON.parse(localStorage.getItem('userdata')))
       setEmail("")
       setPassword("")
+      setLoading(false)
       navigate('/testGenerator/mcqs/create')
     }
     catch (err) {
+      setLoading(false)
       // console.log(err)
       setAlert({
         "vis": true,
         "msg": err.response.data.error
       })
-      console.log(err.response.data.error)
+      // console.log(err.response.data.error)
     }
   }
 
   return (
     <div>
+      {loading && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark overlay with less opacity
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1300, // Ensure it overlays other elements
+          }}
+        >
+          <RingSpinner size={50} color="cyan" />
+
+        </Box>
+      )}
        <Snackbar
         autoHideDuration={2000}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
@@ -73,7 +97,7 @@ const Login = () => {
           <div className="form">
             <div className="inputBox">
               <input value={email} onChange={(e) => setEmail(e.target.value)} type="text" required />
-              <i>Name or Email</i>
+              <i>Email</i>
             </div>
             <div className="inputBox">
               <input value={password} type="password" onChange={(e) => setPassword(e.target.value)} required />

@@ -5,6 +5,13 @@ import TextField from "@mui/material/TextField";
 import FileUpload from "react-material-file-upload";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Button, Box, Typography, Grid } from "@mui/material";
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
+import NorthEast from '@mui/icons-material/NorthEast';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
@@ -12,6 +19,8 @@ import Menu from "@mui/material/Menu";
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
+
+import SaveIcon from '@mui/icons-material/Save';
 import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
@@ -24,6 +33,7 @@ import InputLabel from "@mui/material/InputLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import FormControl from "@mui/material/FormControl";
 
+import LoadingButton from '@mui/lab/LoadingButton';
 import Alert from "@mui/material/Alert";
 
 
@@ -78,7 +88,7 @@ const McqsPage = () => {
   };
   const [aiMsg, setAiMsg] = useState("");
   const [file, setFile] = useState([]);
-  const [maxRange, setMaxRange] = useState(5);
+  const [maxRange, setMaxRange] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
   const [read, setRead] = useState(false)
   const [genQsnsCount, setGenQsnsCount] = useState(0)
@@ -86,13 +96,14 @@ const McqsPage = () => {
     vis: false,
     msg: "",
   });
+  const [saveLoad, setSaveLoad] = useState(false)
   const [testTitle, setTestTitle] = useState("")
   const [openEditTest, setOpenEditTest] = useState(false);
   const handleOpenEditTest = () => {
     setOpenEditTest(true);
   };
   useEffect(() => {
-    if(!localStorage.getItem('token'))
+    if (!localStorage.getItem('token'))
       navigate("/testGenerator/login")
   }, [])
   const [newTestId, setNewTestId] = useState("")
@@ -105,7 +116,7 @@ const McqsPage = () => {
       });
       return
     }
-
+    setSaveLoad(true)
     const data = {
       title: testTitle,
       qsCount: genQsnsCount,
@@ -127,6 +138,7 @@ const McqsPage = () => {
       console.log("Error: ", err);
     }
 
+    setSaveLoad(false)
     setOpenEditTest(false);
     handleMyTests();
   };
@@ -134,22 +146,23 @@ const McqsPage = () => {
   const userData = JSON.parse(localStorage.getItem("userdata"))
 
   let name = "NA"
-  if(userData)
-    name =  userData.name
+  if (userData)
+    name = userData.name
 
   const handleTextChange = (event) => {
     let str = event.target.value;
-    str = str.trim();
+    // console.log(str)
     setInputData(str);
-    // console.log(str.split('.'))
-    let len = str.split(".").length;
-    if (len > 10) {
-      const rounded = Math.round(len / 10) * 5;
-      setMaxRange(rounded);
-
-      setNumOfQs(5 * Math.round(rounded / 5 / 2));
-    }
+    setNumOfQs(30)
   };
+  // console.log(str.split('.'))
+  // let len = str.split(".").length;
+  // if (len > 10) {
+  //   const rounded = Math.round(len / 10) * 5;
+  //   setMaxRange(rounded);
+
+  //   // setNumOfQs(5 * Math.round(rounded / 5 / 2));
+  // }
 
   const handleRangeChange = (event, value) => {
     setNumOfQs(value);
@@ -192,9 +205,11 @@ const McqsPage = () => {
       setIsLoading(false);
     } catch (err) {
       setIsLoading(false);
-      console.log("Error: ", err);
+      console.log("Error1: ", err);
+      console.log("Error2: ", err.response);
       setIsLoading(false)
-      setAiMsg(err.response.data.airesp);
+      if (err.response)
+        setAiMsg(err.response.data.airesp);
       const btn = document.getElementById("infosnackbar");
       if (btn) btn.click();
     }
@@ -202,16 +217,67 @@ const McqsPage = () => {
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
-
   const handleReadFile = async () => {
+    if (!(file && file.length !== 0)) {
+      setAlert({
+        vis: true,
+        msg: "Please Upload a PDF or Test file!",
+      });
+      return
+    }
+    // console.log(file[0])
+    let size = parseFloat(file[0].size / (1024*1024));
+    // console.log(size)
+    if (size > 5.0) {
+      setAlert({
+        vis:true,
+        msg:"File cannot exceed 5MB!"
+      })
+      // return
+    }
+    
+    const uploadedFileType = file[0].name.split('.').pop(); // This extracts the file extension
+    const expectedFileType = fileType === ".pdf" ? "pdf" : "txt"; // Expected file type based on selection
+
+    // Check if the uploaded file type matches the selected file type
+    if (uploadedFileType !== expectedFileType) {
+      setAlert({
+        vis: true,
+        msg: `The uploaded file is not a ${fileType} file. Please upload the correct file type!`,
+      });
+      return;
+    }
+    
+    if (fileType === ".txt") {
+      setRead(true)
+      setIsLoading(true);
+      if (file && file.length > 0) {
+        const selectedFile = file[0]; // Assuming single file upload
+
+        // Create a FileReader to read the file
+        const reader = new FileReader();
+
+        // Set up the onload event to capture file contents
+        reader.onload = (event) => {
+          const text = event.target.result;
+          setInputData(text)
+        };
+
+        // Read the file as text
+        reader.readAsText(selectedFile);
+      }
+      setRead(false)
+      setIsLoading(false);
+      return;
+    }
     try {
       setRead(true)
       setIsLoading(true);
-    //  console.log(file[0])
+      //  console.log(file[0])
       let formData = new FormData();
       formData.append("pdfFile", file[0]);
       // console.log(formData)
-      
+
       let authToken = localStorage.getItem("token");
       const response = await fetch(`${baseUrl}/mcqs/getfilecontent`, {
         method: 'POST',
@@ -220,11 +286,11 @@ const McqsPage = () => {
           'Token': authToken, // For custom headers like 'Token'
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       setInputData(data.data)
       // const dat = response.text();
@@ -232,20 +298,24 @@ const McqsPage = () => {
       setIsLoading(false);
       setRead(false)
     } catch (err) {
+      console.log("Error: ", err);
       setIsLoading(false);
       setRead(false)
-      console.log("Error: ", err);
+      // setAlert({
+      //   vis:true,
+      //   msg:err
+      // })
     }
   }
   const handlePaste = () => {
     navigator.clipboard.readText()
-  .then(text => {
-    setInputData(text)
-  })
-  .catch(err => {
-    console.error('Failed to read clipboard contents: ', err);
-  });
-   
+      .then(text => {
+        setInputData(text)
+      })
+      .catch(err => {
+        console.error('Failed to read clipboard contents: ', err);
+      });
+
   }
 
   const [open, setOpen] = React.useState(false);
@@ -269,6 +339,11 @@ const McqsPage = () => {
   const handleDurChange = (e) => {
     setDur(e.target.value)
   }
+
+  const [fileType, setFileType] = useState(".pdf")
+  const handleFileTypeChange = (event) => {
+    setFileType(event.target.value); // Update the state based on selected file type
+  };
 
   const [corAns, setCorAns] = useState(4);
   const handleChangeCorAns = (event) => {
@@ -365,9 +440,9 @@ const McqsPage = () => {
           {read === true ? (
             <SwapSpinner size={50} color="cyan" />
           ) : (
-             <CubeSpinner size={50} frontColor="cyan" />
+            <CubeSpinner size={50} frontColor="cyan" />
           )}
-         
+
         </Box>
       )}
 
@@ -429,9 +504,6 @@ const McqsPage = () => {
                 onChange={handleTestTitleChange}
                 variant="outlined"
               />
-
-
-
               <TextField style={{ marginTop: '25px' }}
                 fullWidth
                 id="outlined-select-currency"
@@ -478,7 +550,20 @@ const McqsPage = () => {
           </DialogContent>
 
           <DialogActions>
-            <Button style={{ marginRight: '20px', marginBottom: '15px' }} variant="contained" color="success" onClick={handleCloseEditTest}>Save Test</Button>
+            {/* <Button style={{ marginRight: '20px', marginBottom: '15px' }} variant="contained" color="success" onClick={handleCloseEditTest}>Save Test</Button> */}
+
+            <LoadingButton
+              style={{ marginRight: '20px', marginBottom: '15px' }}
+              color="success"
+              onClick={handleCloseEditTest}
+              loading={saveLoad}
+              loadingPosition="start"
+              startIcon={<SaveIcon />}
+              variant="contained"
+            >
+              Save Test
+            </LoadingButton>
+
           </DialogActions>
         </Dialog>
       </ThemeProvider>
@@ -520,10 +605,10 @@ const McqsPage = () => {
               sx={{ color: "white", marginBottom: "10px" }}
             >
               Enter your text below & click on generate:
-              <Button  sx={{ margin: "5px" }} variant="contained" size="small" color="primary" onClick={handlePaste}>
+              <Button sx={{ margin: "5px" }} variant="contained" size="small" color="primary" onClick={handlePaste}>
                 Paste Text
               </Button>
-              <Button sx={{ margin: "5px" }}  variant="contained" size="small" color="primary" onClick={() => setInputData("")}>
+              <Button sx={{ margin: "5px" }} variant="contained" size="small" color="primary" onClick={() => setInputData("")}>
                 Clear Text
               </Button>
             </Typography>
@@ -566,7 +651,13 @@ const McqsPage = () => {
               variant="h6"
               sx={{ color: "white", marginBottom: "10px" }}
             >
-              OR Upload a file:
+              OR Upload a PDF(&lt; 5 Mb) or Text file :
+              {/* <Tooltip style={{ marginRight: "10px", marginBottom: '3px' }} title="Convert an image based document to pdf.">
+                <Button sx={{ margin: "5px" }} target="_blank" href="https://www.ilovepdf.com/" variant="contained" size="small" color="primary" >
+                  Convert To PDF  <NorthEast />
+                </Button>
+              </Tooltip> */}
+
             </Typography>
             <ThemeProvider theme={createTheme({ palette: { mode: "dark" } })}>
               <FileUpload
@@ -585,15 +676,36 @@ const McqsPage = () => {
                   },
                 }}
               />
-               {/* <input type="file" onChange={handleFileChange} /> */}
-             
-              <Box sx={{textAlign:'center', marginTop:"10px"}}>
-                {file && (file.length !== 0) && (
-                  <Button variant="contained" color="primary" onClick={handleReadFile}>
-                    Read Text
-                  </Button>
+
+              <Box sx={{ textAlign: 'center', marginTop: "20px", display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {(1 > 0) && (
+                  <>
+                    <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                      <FormLabel sx={{ marginRight: "10px" }} id="demo-row-radio-buttons-group-label">Choose File Type : </FormLabel>
+                      <RadioGroup
+                        row
+                        aria-labelledby="demo-row-radio-buttons-group-label"
+                        name="row-radio-buttons-group"
+                        value={fileType}
+                        onChange={handleFileTypeChange}
+                      >
+                        <FormControlLabel value=".pdf" control={<Radio />} label=".pdf" />
+                        <FormControlLabel value=".txt" control={<Radio />} label=".txt" />
+                      </RadioGroup>
+                    </FormControl>
+                    <Button style={{ marginLeft: "20px" }} size="small" variant="contained" color="primary" onClick={handleReadFile}>
+                      Read Text
+                    </Button>
+
+                    <Tooltip style={{ marginRight: "0px", marginBottom: '0px' }} title="Convert an image based document to pdf.">
+                      <Button sx={{ marginLeft: "15px" }} target="_blank" href="https://www.ilovepdf.com/" variant="contained" size="small" color="secondary" >
+                        Convert PDF  <NorthEast />
+                      </Button>
+                    </Tooltip>
+                  </>
                 )}
               </Box>
+
             </ThemeProvider>
           </Box>
         </Box>
@@ -613,7 +725,7 @@ const McqsPage = () => {
               marks={true}
               min={5}
               color="white"
-              max={maxRange}
+              max={60}
               onChange={handleRangeChange}
             />
           </Box>

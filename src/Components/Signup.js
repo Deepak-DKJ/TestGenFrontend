@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import { Slide } from '@mui/material';
+import { RingSpinner } from 'react-spinners-kit';
 
 const Signup = () => {
   const navigate = useNavigate()
@@ -24,6 +25,7 @@ const Signup = () => {
     "msg": ""
   })
 
+  const [loading, setLoading] = useState(false)
 
   const handleAddUser = async () => {
     const data = {
@@ -31,10 +33,11 @@ const Signup = () => {
       "email": email,
       "password": password
     }
-
+    setLoading(true)
     try {
       const response = await axios.post(`${baseUrl}/auth/signup`, data);
-
+      
+    setLoading(false)
       // localStorage.setItem('token', response.data.authToken)
       // navigate('/')
       setEmail("")
@@ -54,12 +57,33 @@ const Signup = () => {
       })
       // console.log(err.response.data.error)
     }
+    
+    setLoading(false)
   }
 
   return (
     <div>
+      {loading && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark overlay with less opacity
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1300, // Ensure it overlays other elements
+          }}
+        >
+          <RingSpinner size={50} color="cyan" />
+
+        </Box>
+      )}
       <Snackbar
-        autoHideDuration={2000}
+        autoHideDuration={3000}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         open={alert.vis}
 

@@ -158,8 +158,9 @@ const StartTest = () => {
             else wrongCount++;
         }
 
-        const score = (test.crtAnswer * correctCount) - (test.negMarking * wrongCount);
-
+        let score = (test.crtAnswer * correctCount) - (test.negMarking * wrongCount);
+        if(score < 0)
+            score = 0
         const data = {
             "updatedQuestionsList": test.questions,
             "testScore": score,
@@ -292,7 +293,7 @@ const StartTest = () => {
                         </DialogActions>
                     </Dialog>
                 </ThemeProvider>
-               <NavBar />
+               <NavBar PAGE="started"/>
             </>
             {test && (
                 <div className='main'>

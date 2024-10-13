@@ -174,8 +174,7 @@ const styles = {
         transition: "background-color 0.3s ease",
     },
 };
-const NavBar = () => {
-
+const NavBar = ({PAGE}) => {
     const pages = ["Home", "Create", "Dashboard"];
     const settings = ["My Profile", "Sign out"];
     const [anchorElNav, setAnchorElNav] = useState(null);
@@ -205,8 +204,8 @@ const NavBar = () => {
 
     const userData = JSON.parse(localStorage.getItem("userdata"))
     let name = "NA"
-    if(userData)
-    name = userData.name.split(" ")
+    if (userData)
+        name = userData.name.split(" ")
     let userName = ""
     if (name.length > 1) {
         userName += (name[0][0] + name[1][0])
@@ -228,6 +227,11 @@ const NavBar = () => {
             "rating": rating,
             "feedback": feedBack
         };
+        handleCloseModal()
+        setAlert({
+            vis: true,
+            msg: "Ratings & Feedbacks submitted successfully !",
+        });
         let authToken = localStorage.getItem("token");
         // console.log(authToken);
         try {
@@ -242,12 +246,6 @@ const NavBar = () => {
         catch (err) {
             console.log("Error: ", err);
         }
-
-        handleCloseModal()
-        setAlert({
-            vis: true,
-            msg: "Ratings & Feedbacks submitted successfully !",
-        });
     }
 
     const handleOpenNavMenu = (event) => {
@@ -259,6 +257,13 @@ const NavBar = () => {
     };
 
     const handleCloseNavMenu = (page) => {
+        if(PAGE === "started")
+        {
+            // eslint-disable-next-line no-restricted-globals
+            if (confirm("Do you want to exit from the test? All progress will be lost!") === false) {
+                return;
+            }            
+        }
         if (page === "Home")
             navigate('/testGenerator/')
         else if (page === "Create")
@@ -275,13 +280,13 @@ const NavBar = () => {
 
     const handleProfile = async (set) => {
         // console.log(set)
-        if(set === "Sign out")
-        {
+        if (set === "Sign out") {
             localStorage.removeItem('token');
             navigate("/testGenerator/login")
             return
         }
         if (set === "My Profile") {
+            handleLaunchModal(set)
             try {
                 // console.log("READY")
                 let authToken = localStorage.getItem('token')
@@ -299,7 +304,6 @@ const NavBar = () => {
                 console.log(err)
                 // setShowProgress(false)
             }
-            handleLaunchModal(set)
             return
         }
     }
@@ -392,6 +396,7 @@ const NavBar = () => {
                                                 backgroundColor: "cyan",
                                                 width: 45,
                                                 height: 45,
+                                                paddingTop: "2px"
                                             }}
                                         >
                                             {userName.toUpperCase()}
@@ -450,7 +455,7 @@ const NavBar = () => {
                         aria-describedby="confirm-dialog-description"
                         TransitionComponent={Slide}
                     >
-                        <DialogTitle className='text-center' id="confirm-dialog-title">
+                        <DialogTitle style={{color:'cyan', fontSize:'21px'}} className='text-center' id="confirm-dialog-title">
                             {modal}
                         </DialogTitle>
                         <DialogContent>
@@ -523,81 +528,81 @@ const NavBar = () => {
                                 )}
 
                                 {modal === "Contact Us" && (
-                                   <Box
-                                   sx={{
-                                     padding: "20px",
-                                     backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                     borderRadius: "10px",
-                                     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-                                     maxWidth: "400px",
-                                     margin: "0 auto",
-                                     textAlign: "left"
-                                   }}
-                                 >
-                                   <Box sx={{ marginTop: "10px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                     <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><WhatsAppIcon color="success" /> WhatsApp :</Typography>
-                                     <Typography sx={{ color: "lightgray", fontSize: "16px" }}>
-                                       <Link 
-                                         className="link-light mx-2" 
-                                         to="https://api.whatsapp.com/send?phone=918863924419&text=Hi%20Deepak%2C%0ALet%27s%20talk%20about%20Testgen%20application" 
-                                         target="_blank"
-                                         style={{ textDecoration: 'none' }}
-                                         onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                                         onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                                       >
-                                         +91-8863924419
-                                       </Link>
-                                     </Typography>
-                                   </Box>
-                                 
-                                   <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                     <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><EmailIcon color="warning" /> Email : </Typography>
-                                     <Typography sx={{ color: "lightgray", fontSize: "16px", marginLeft: '40px' }}>
-                                       <Link 
-                                         className="link-light mx-2" 
-                                         to="#" 
-                                         style={{ textDecoration: 'none' }} // Replace # with actual email link
-                                         onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                                         onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                                       >
-                                         {userData.email}
-                                       </Link>
-                                     </Typography>
-                                   </Box>
-                                 
-                                   <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                     <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><LinkedInIcon color="info" /> LinkedIn :</Typography>
-                                     <Typography sx={{ color: "lightgray", fontSize: "16px" }}>
-                                       <Link 
-                                         className="link-light mx-2" 
-                                         to="https://www.linkedin.com/in/deepak-kumar-jha-4ab8951bb/" 
-                                         target="_blank"
-                                         style={{ textDecoration: 'none' }}
-                                         onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                                         onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                                       >
-                                         Linkedin.com/deepakjha
-                                       </Link>
-                                     </Typography>
-                                   </Box>
-                                 
-                                   <Box sx={{ marginTop: "20px", marginBottom:'5px', display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                     <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><GitHubIcon color="action" /> Github :</Typography>
-                                     <Typography sx={{ color: "lightgray", fontSize: "16px" }}>
-                                       <Link 
-                                         className="link-light mx-2" 
-                                         to="https://github.com/Deepak-DKJ" 
-                                         target="_blank"
-                                         style={{ textDecoration: 'none' }}
-                                         onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                                         onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                                       >
-                                         Github.com/deepakjha
-                                       </Link>
-                                     </Typography>
-                                   </Box>
-                                 </Box>
-                                 
+                                    <Box
+                                        sx={{
+                                            padding: "20px",
+                                            backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                            borderRadius: "10px",
+                                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                                            maxWidth: "400px",
+                                            margin: "0 auto",
+                                            textAlign: "left"
+                                        }}
+                                    >
+                                        <Box sx={{ marginTop: "10px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
+                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><WhatsAppIcon color="success" /> WhatsApp :</Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>
+                                                <Link
+                                                    className="link-light mx-2"
+                                                    to="https://api.whatsapp.com/send?phone=918863924419&text=Hi%20Deepak%2C%0ALet%27s%20talk%20about%20Testgen%20application"
+                                                    target="_blank"
+                                                    style={{ textDecoration: 'none' }}
+                                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                >
+                                                    +91-8863924419
+                                                </Link>
+                                            </Typography>
+                                        </Box>
+
+                                        <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
+                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><EmailIcon color="warning" /> Email : </Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "16px", marginLeft: '40px' }}>
+                                                <Link
+                                                    className="link-light mx-2"
+                                                    to="#"
+                                                    style={{ textDecoration: 'none' }} // Replace # with actual email link
+                                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                >
+                                                    deepakjha1104@gmail.com
+                                                </Link>
+                                            </Typography>
+                                        </Box>
+
+                                        <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
+                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><LinkedInIcon color="info" /> LinkedIn :</Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>
+                                                <Link
+                                                    className="link-light mx-2"
+                                                    to="https://www.linkedin.com/in/deepak-kumar-jha-4ab8951bb/"
+                                                    target="_blank"
+                                                    style={{ textDecoration: 'none' }}
+                                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                >
+                                                    Linkedin.com/deepakjha
+                                                </Link>
+                                            </Typography>
+                                        </Box>
+
+                                        <Box sx={{ marginTop: "20px", marginBottom: '5px', display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
+                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}><GitHubIcon color="action" /> Github :</Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>
+                                                <Link
+                                                    className="link-light mx-2"
+                                                    to="https://github.com/Deepak-DKJ"
+                                                    target="_blank"
+                                                    style={{ textDecoration: 'none' }}
+                                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                >
+                                                    Github.com/deepakjha
+                                                </Link>
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+
                                 )}
 
                                 {/* {modal === "Contact Us" && (
@@ -631,29 +636,33 @@ const NavBar = () => {
                                         }}
                                     >
                                         <Box sx={{ marginTop: "10px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}>Name :</Typography>
-                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>{userData.name}</Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "18px", fontWeight: "500" }}>Name :</Typography>
+                                            <Typography sx={{ color: "white", fontSize: "16px" }}>{userData.name}</Typography>
                                         </Box>
                                         <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}>Email : </Typography>
-                                            <Typography sx={{ color: "lightgray", fontSize: "16px", marginLeft: '10px' }}>{userData.email}</Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "18px", fontWeight: "500" }}>Email : </Typography>
+                                            <Typography sx={{ color: "white", fontSize: "16px", marginLeft: '10px' }}>{userData.email}</Typography>
                                         </Box>
                                         <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}>Created On :</Typography>
-                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>{userData.created}</Typography>
+                                            <Typography sx={{ color: "lightgray", fontSize: "18px", fontWeight: "500" }}>Created On :</Typography>
+                                            <Typography sx={{ color: "white", fontSize: "16px" }}>{userData.created}</Typography>
                                         </Box>
-                                        <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}>Total Tests Generated :</Typography>
-                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>{profile.total}</Typography>
-                                        </Box>
-                                        <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
-                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}>Tests Completed :</Typography>
-                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>{profile.total - profile.pending}</Typography>
-                                        </Box>
-                                        <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
-                                            <Typography sx={{ color: "white", fontSize: "18px", fontWeight: "500" }}>Pending Tests :</Typography>
-                                            <Typography sx={{ color: "lightgray", fontSize: "16px" }}>{profile.pending}</Typography>
-                                        </Box>
+                                        {profile && (
+                                            <>
+                                                <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
+                                                    <Typography sx={{ color: "lightgray", fontSize: "18px", fontWeight: "500" }}>Total Tests Generated :</Typography>
+                                                    <Typography sx={{ color: "white", fontSize: "16px" }}>{profile.total}</Typography>
+                                                </Box>
+                                                <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.3)", paddingBottom: "5px" }}>
+                                                    <Typography sx={{ color: "lightgray", fontSize: "18px", fontWeight: "500" }}>Tests Completed :</Typography>
+                                                    <Typography sx={{ color: "white", fontSize: "16px" }}>{profile.total - profile.pending}</Typography>
+                                                </Box>
+                                                <Box sx={{ marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
+                                                    <Typography sx={{ color: "lightgray", fontSize: "18px", fontWeight: "500" }}>Pending Tests :</Typography>
+                                                    <Typography sx={{ color: "white", fontSize: "16px" }}>{profile.pending}</Typography>
+                                                </Box>
+                                            </>
+                                        )}
                                     </Box>
                                 )}
 

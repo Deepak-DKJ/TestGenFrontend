@@ -282,7 +282,7 @@ const MyTests = () => {
                                                     <span className="rounded-pill badge text-bg-success">{`+${test.correctAnswerPoints}`}</span>
                                                 </Tooltip>
                                                 Wrong:<Tooltip title="Negative marking for wrong answer">
-                                                    <span className="rounded-pill badge text-bg-danger">{`-${test.negativeMarking}`}</span>
+                                                    <span style={{paddingBottom:"6px"}} className="rounded-pill badge text-bg-danger">{`-${test.negativeMarking}`}</span>
                                                 </Tooltip>
                                                 <Tooltip title="Delete this test">
                                                     <IconButton
