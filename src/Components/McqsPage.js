@@ -189,6 +189,8 @@ const McqsPage = () => {
       const response = await axios.post(`${baseUrl}/mcqs/addtest`, data, {
         headers: {
           Token: authToken, // Set the Authorization header with Bearer token
+          withCredentials: true,
+          "Access-Control-Allow-Origin": "*", 
         },
       });
       const dat = response.data;
