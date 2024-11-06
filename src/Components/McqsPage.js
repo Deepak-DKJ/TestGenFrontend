@@ -339,6 +339,9 @@ const McqsPage = () => {
 
   const [dur, setDur] = useState(30)
   const handleDurChange = (e) => {
+    if(e.target.value === "")
+      setDur(5)
+    else
     setDur(e.target.value)
   }
 
