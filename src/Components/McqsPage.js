@@ -234,7 +234,7 @@ const McqsPage = () => {
 
   const handleGenMcqs = async () => {
     if (open === true) setOpen(false);
-    if (inputData.length === 0 && !file) {
+    if ((inputData.trim() === "" || inputData.length === 0) && (file.length === 0)) {
       setAlert({
         vis: true,
         msg: "Empty text. Please provide the input!",
@@ -260,7 +260,7 @@ const McqsPage = () => {
       // };
       let authToken = localStorage.getItem("token");
       // console.log(authToken);
-      const response = await axios.post(`${baseUrl}/mcqs/addtest`, data, {
+      const response = await axios.post(`${baseUrl}/mcqs/addtes`, data, {
         headers: {
           // "Content-Type": "multipart/form-data", // let Axios set the proper boundary
           //  "Token": authToken,               
