@@ -5,6 +5,7 @@ import TextField from "@mui/material/TextField";
 import FileUpload from "react-material-file-upload";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Button, Box, Typography, Grid } from "@mui/material";
+
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import NorthEast from '@mui/icons-material/NorthEast';
@@ -35,7 +36,10 @@ import FormControl from "@mui/material/FormControl";
 
 import LoadingButton from '@mui/lab/LoadingButton';
 import Alert from "@mui/material/Alert";
-
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import ClearIcon from '@mui/icons-material/Clear';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -44,6 +48,44 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Select from "@mui/material/Select";
 import NavBar from "./NavBar";
+import PropTypes from 'prop-types';
+import { useTheme } from '@mui/material/styles';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`full-width-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `full-width-tab-${index}`,
+    'aria-controls': `full-width-tabpanel-${index}`,
+  };
+}
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -86,12 +128,26 @@ const McqsPage = () => {
     setInputData("");
     navigate("/testGenerator/mcqs/mytests");
   };
+
+  const theme = useTheme();
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+  const [alignment, setAlignment] = React.useState('MEDIUM');
+
+  const handleChangeAlignMent = (event, newAlignment) => {
+    setAlignment(newAlignment);
+  };
+
   const [aiMsg, setAiMsg] = useState("");
   const [file, setFile] = useState([]);
   const [maxRange, setMaxRange] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
   const [read, setRead] = useState(false)
   const [genQsnsCount, setGenQsnsCount] = useState(0)
+  const [selectedFile, setSelectedFile] = useState(null);
   const [alert, setAlert] = useState({
     vis: false,
     msg: "",
@@ -99,6 +155,7 @@ const McqsPage = () => {
   const [saveLoad, setSaveLoad] = useState(false)
   const [testTitle, setTestTitle] = useState("")
   const [openEditTest, setOpenEditTest] = useState(false);
+  const [loading, setLoading] = useState(false);
   const handleOpenEditTest = () => {
     setOpenEditTest(true);
   };
@@ -106,6 +163,13 @@ const McqsPage = () => {
     if (!localStorage.getItem('token'))
       navigate("/testGenerator/login")
   }, [])
+
+  useEffect(() => {
+    if (!file) return;
+    setLoading(true);
+
+    // handleGenMcqs();
+  }, [file])
   const [newTestId, setNewTestId] = useState("")
 
   const handleCloseEditTest = async () => {
@@ -170,27 +234,40 @@ const McqsPage = () => {
 
   const handleGenMcqs = async () => {
     if (open === true) setOpen(false);
-    if (inputData.length === 0) {
+    if (inputData.length === 0 && !file) {
       setAlert({
         vis: true,
         msg: "Empty text. Please provide the input!",
       });
       return;
     }
+    // console.log(file)
+    // const formData = new FormData();
+    // formData.append("uploadedDoc", file);
     // generate MCQs logic
     try {
       setIsLoading(true);
-      const data = {
-        inp: inputData,
-        qsns: numOfQs,
-      };
+      const data = new FormData();
+      data.append("inp", inputData);
+      data.append("qsns", numOfQs);
+      data.append("lvl", alignment);
+      data.append("uploadedDoc", file[0]);
+      // console.log(file[0])
+      // const data = {
+      //   inp: inputData,
+      //   qsns: numOfQs,
+      //   file: file
+      // };
       let authToken = localStorage.getItem("token");
       // console.log(authToken);
       const response = await axios.post(`${baseUrl}/mcqs/addtest`, data, {
         headers: {
+          // "Content-Type": "multipart/form-data", // let Axios set the proper boundary
+          //  "Token": authToken,               
+
           Token: authToken, // Set the Authorization header with Bearer token
-          withCredentials: true,
-          "Access-Control-Allow-Origin": "*", 
+          // withCredentials: true,
+          // "Access-Control-Allow-Origin": "*", 
         },
       });
       const dat = response.data;
@@ -216,99 +293,10 @@ const McqsPage = () => {
       if (btn) btn.click();
     }
   };
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
-  };
-  const handleReadFile = async () => {
-    if (!(file && file.length !== 0)) {
-      setAlert({
-        vis: true,
-        msg: "Please Upload a PDF or Test file!",
-      });
-      return
-    }
-    // console.log(file[0])
-    let size = parseFloat(file[0].size / (1024*1024));
-    // console.log(size)
-    if (size > 5.0) {
-      setAlert({
-        vis:true,
-        msg:"File cannot exceed 5MB!"
-      })
-      // return
-    }
-    
-    const uploadedFileType = file[0].name.split('.').pop(); // This extracts the file extension
-    const expectedFileType = fileType === ".pdf" ? "pdf" : "txt"; // Expected file type based on selection
+  // const handleFileChange = (event) => {
+  //   setFile(event.target.files[0]);
+  // };
 
-    // Check if the uploaded file type matches the selected file type
-    if (uploadedFileType !== expectedFileType) {
-      setAlert({
-        vis: true,
-        msg: `The uploaded file is not a ${fileType} file. Please upload the correct file type!`,
-      });
-      return;
-    }
-    
-    if (fileType === ".txt") {
-      setRead(true)
-      setIsLoading(true);
-      if (file && file.length > 0) {
-        const selectedFile = file[0]; // Assuming single file upload
-
-        // Create a FileReader to read the file
-        const reader = new FileReader();
-
-        // Set up the onload event to capture file contents
-        reader.onload = (event) => {
-          const text = event.target.result;
-          setInputData(text)
-        };
-
-        // Read the file as text
-        reader.readAsText(selectedFile);
-      }
-      setRead(false)
-      setIsLoading(false);
-      return;
-    }
-    try {
-      setRead(true)
-      setIsLoading(true);
-      //  console.log(file[0])
-      let formData = new FormData();
-      formData.append("pdfFile", file[0]);
-      // console.log(formData)
-
-      let authToken = localStorage.getItem("token");
-      const response = await fetch(`${baseUrl}/mcqs/getfilecontent`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Token': authToken, // For custom headers like 'Token'
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setInputData(data.data)
-      // const dat = response.text();
-      // console.log(data.data)
-      setIsLoading(false);
-      setRead(false)
-    } catch (err) {
-      console.log("Error: ", err);
-      setIsLoading(false);
-      setRead(false)
-      // setAlert({
-      //   vis:true,
-      //   msg:err
-      // })
-    }
-  }
   const handlePaste = () => {
     navigator.clipboard.readText()
       .then(text => {
@@ -339,10 +327,10 @@ const McqsPage = () => {
 
   const [dur, setDur] = useState(30)
   const handleDurChange = (e) => {
-    if(e.target.value === "")
+    if (e.target.value === "")
       setDur(5)
     else
-    setDur(e.target.value)
+      setDur(e.target.value)
   }
 
   const [fileType, setFileType] = useState(".pdf")
@@ -362,8 +350,8 @@ const McqsPage = () => {
 
   const styles = {
     sliderContainer: {
-      width: "50%", // Adjust slider width
-      margin: "10px auto", // Center the slider
+      width: "80%", // Adjust slider width
+      margin: "5px auto", // Center the slider
     },
     container: {
       display: "flex",
@@ -372,18 +360,20 @@ const McqsPage = () => {
       flexDirection: "column",
       padding: "20px",
     },
-    inputSection: {
-      display: "flex",
-      justifyContent: "space-between",
-      width: "100%",
-      padding: "20px",
-      marginBottom: "10px",
+    inputHalf1: {
+      flex: 1,
+      margin: "15px",
+      backgroundColor: "#2E2E2E",
+      padding: "15px",
+      // padding: "5px 25px 20px",
+      borderRadius: "10px",
     },
     inputHalf: {
       flex: 1,
-      margin: "0 20px",
+      margin: "15px",
       backgroundColor: "#2E2E2E",
-      padding: "20px",
+      // padding: "15px",
+      padding: "5px 25px 25px",
       borderRadius: "10px",
     },
     textField: {
@@ -396,16 +386,12 @@ const McqsPage = () => {
       border: "1px solid #555",
       backgroundColor: "#2E2E2E",
     },
-    sliderSection: {
-      width: "100%",
-      textAlign: "center",
-      marginBottom: "10px",
-    },
 
     button: {
       marginLeft: "20px",
+      marginTop: "25px",
       padding: "15px 25px",
-      fontSize: "18px",
+      fontSize: "16px",
       fontWeight: "bold",
       backgroundColor: "#4caf50", // Green color for the "My Tests" button
       color: "#fff",
@@ -415,8 +401,9 @@ const McqsPage = () => {
     },
     myTestsButton: {
       padding: "15px 25px", // Add more padding to make it bigger
-      fontSize: "18px", // Larger text
+      fontSize: "16px", // Larger text
       fontWeight: "bold",
+      marginTop: "25px",
       backgroundColor: "#1976d2",
       color: "#fff",
       borderRadius: "28px", // Rounded corners
@@ -591,7 +578,7 @@ const McqsPage = () => {
         </Alert>
       </Snackbar>
       <>
-        <NavBar />
+        <NavBar PAGE={"Create"}/>
       </>
       <Box sx={styles.container}>
         <Typography
@@ -601,143 +588,168 @@ const McqsPage = () => {
           Hello {name}, Welcome back !
         </Typography>
 
-        {/* Input Section: Left (Text Input) and Right (File Upload) */}
-        <Box sx={styles.inputSection}>
-          {/* Left Half: TextField */}
-          <Box sx={styles.inputHalf}>
-            <Typography
-              variant="h6"
-              sx={{ color: "white", marginBottom: "10px" }}
+        <Box sx={{ bgcolor: 'background.paper', width: "60%" }}>
+          <AppBar position="static">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              indicatorColor="primary"
+              textColor="inherit"
+              variant="fullWidth"
+              aria-label="input tabs"
             >
-              Enter your text below & click on generate:
-              <Button sx={{ margin: "5px" }} variant="contained" size="small" color="primary" onClick={handlePaste}>
-                Paste Text
-              </Button>
-              <Button sx={{ margin: "5px" }} variant="contained" size="small" color="primary" onClick={() => setInputData("")}>
-                Clear Text
-              </Button>
-            </Typography>
-            <TextField
-              id="outlined-multiline-static"
-              label="Paste your text here!"
-              multiline
-              fullWidth
-              rows={10}
-              variant="outlined"
-              value={inputData}
-              onChange={handleTextChange}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: styles.textField.backgroundColor,
-                  borderRadius: styles.textField.borderRadius,
-                  "&:hover fieldset": {
-                    borderColor: "white",
+              <Tab label="Upload File" {...a11yProps(0)} />
+              <Tab label="Enter Text" {...a11yProps(1)} />
+            </Tabs>
+          </AppBar>
+          <TabPanel value={value} index={0} dir={theme.direction}>
+            <Box sx={styles.inputHalf1}>
+              <Typography
+                variant="subtitle1"
+                sx={{ color: "#ccc", marginBottom: "15px", textAlign: 'center' }}
+              >
+                Start Uploading any File (PDF, Image, Text, Doc) below, and then hit on Generate:
+              </Typography>
+              <ThemeProvider theme={createTheme({ palette: { mode: "dark" } })}>
+
+                <FileUpload
+                  value={file}
+                  onChange={setFile}
+                  sx={{
+                    margin: "20px",
+                    padding: "30px",
+                    '& .MuiChip-icon': {
+                      backgroundColor: '#2E2E2E',
+                      color: 'red',
+                    },
+                    '& .MuiChip-deleteIcon': {
+                      color: 'black',
+                      '&:hover': {
+                        color: 'black', // Keep the color black on hover
+                      },
+                    },
+                  }}
+                />
+
+              </ThemeProvider>
+
+            </Box>
+
+          </TabPanel>
+          <TabPanel value={value} index={1} dir={theme.direction}>
+
+            <Box sx={styles.inputHalf}>
+              <Typography
+                variant="subtitle2"
+                sx={{ textAlign:'center', color: "#ccc", marginBottom: "5px" }}
+              >
+                Enter your text below & click on generate &nbsp;
+                <Tooltip title="Paste Text">
+                  <IconButton onClick={handlePaste}>
+                    <ContentPasteIcon />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Delete Text">
+                  <IconButton onClick={() => setInputData("")}>
+                    <ClearIcon />
+                  </IconButton>
+                </Tooltip>
+              </Typography>
+              <TextField
+                id="outlined-multiline-static"
+                label="Paste your text here!"
+                multiline
+                fullWidth
+                rows={8}
+                variant="outlined"
+                value={inputData}
+                onChange={handleTextChange}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: styles.textField.backgroundColor,
+                    borderRadius: styles.textField.borderRadius,
+                    "&:hover fieldset": {
+                      borderColor: "white",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "white",
+                    },
+                    "& textarea": {
+                      color: "#ccc",
+                    },
                   },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "white",
-                  },
-                  "& textarea": {
+                  "& .MuiInputLabel-root": {
                     color: "#ccc",
                   },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#ccc",
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: "white",
-                },
-              }}
-            />
-          </Box>
-
-          {/* Right Half: File Upload */}
-          <Box sx={styles.inputHalf}>
-            <Typography
-              variant="h6"
-              sx={{ color: "white", marginBottom: "10px" }}
-            >
-              OR Upload a PDF(&lt; 5 Mb) or Text file :
-              {/* <Tooltip style={{ marginRight: "10px", marginBottom: '3px' }} title="Convert an image based document to pdf.">
-                <Button sx={{ margin: "5px" }} target="_blank" href="https://www.ilovepdf.com/" variant="contained" size="small" color="primary" >
-                  Convert To PDF  <NorthEast />
-                </Button>
-              </Tooltip> */}
-
-            </Typography>
-            <ThemeProvider theme={createTheme({ palette: { mode: "dark" } })}>
-              <FileUpload
-                value={file}
-                onChange={setFile}
-                sx={{
-                  '& .MuiChip-icon': {
-                    backgroundColor: '#2E2E2E',
-                    color: 'red',
-                  },
-                  '& .MuiChip-deleteIcon': {
-                    color: 'black',
-                    '&:hover': {
-                      color: 'black', // Keep the color black on hover
-                    },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: "white",
                   },
                 }}
               />
+            </Box>
+          </TabPanel>
 
-              <Box sx={{ textAlign: 'center', marginTop: "20px", display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                {(1 > 0) && (
-                  <>
-                    <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                      <FormLabel sx={{ marginRight: "10px" }} id="demo-row-radio-buttons-group-label">Choose File Type : </FormLabel>
-                      <RadioGroup
-                        row
-                        aria-labelledby="demo-row-radio-buttons-group-label"
-                        name="row-radio-buttons-group"
-                        value={fileType}
-                        onChange={handleFileTypeChange}
-                      >
-                        <FormControlLabel value=".pdf" control={<Radio />} label=".pdf" />
-                        <FormControlLabel value=".txt" control={<Radio />} label=".txt" />
-                      </RadioGroup>
-                    </FormControl>
-                    <Button style={{ marginLeft: "20px" }} size="small" variant="contained" color="primary" onClick={handleReadFile}>
-                      Read Text
-                    </Button>
 
-                    <Tooltip style={{ marginRight: "0px", marginBottom: '0px' }} title="Convert an image based document to pdf.">
-                      <Button sx={{ marginLeft: "15px" }} target="_blank" href="https://www.ilovepdf.com/" variant="contained" size="small" color="secondary" >
-                        Convert PDF  <NorthEast />
-                      </Button>
-                    </Tooltip>
-                  </>
-                )}
-              </Box>
+          <Box sx={{ marginBottom: "20px" }}>
 
-            </ThemeProvider>
-          </Box>
-        </Box>
+            <Grid container
+              spacing={2}
+              gap={10}
+              direction="row"
+              sx={{
+                justifyContent: "center",
+                alignItems: "center",
+              }}>
+              <Grid size={6}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Typography variant="subtitle1" sx={{ color: "#ccc" }}>
+                    Choose Difficulty level
+                  </Typography>
+                  &nbsp;&nbsp;&nbsp;
+                  <ToggleButtonGroup
+                    color={alignment === "MEDIUM" ? ("primary") : (alignment === "EASY" ? ("success") : ("error"))}
+                    size="small"
+                    value={alignment}
+                    exclusive
+                    onChange={handleChangeAlignMent}
+                    aria-label="Platform"
+                  >
+                    <ToggleButton value="EASY">Easy</ToggleButton>
+                    <ToggleButton value="MEDIUM">Medium</ToggleButton>
+                    <ToggleButton value="HARD">Hard</ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+              </Grid>
+              <Grid size={6}>
 
-        {/* Slider Section */}
-        <Box sx={styles.sliderSection}>
-          <Typography variant="h6" sx={{ color: "white" }}>
-            Please select the number of questions for the test :{" "}
-            <span className="badge" style={{ backgroundColor: "green", border: '1px solid white' }}>{numOfQs}</span>
-          </Typography>
-          <Box sx={styles.sliderContainer}>
-            <Slider
-              aria-label="questions"
-              value={numOfQs}
-              valueLabelDisplay="auto"
-              step={5}
-              marks={true}
-              min={5}
-              color="white"
-              max={60}
-              onChange={handleRangeChange}
-            />
+                <Typography variant="subtitle1" sx={{ color: "#ccc" }}>
+                  Please select the number of questions &nbsp;
+                  <span className="badge" style={{ fontWeight: "500", fontSize: "14px", backgroundColor: "#3B3B3B", color: 'white' }}>{numOfQs}</span>
+                </Typography>
+                <Box sx={styles.sliderContainer}>
+                  <Slider
+                    aria-label="questions"
+                    value={numOfQs}
+                    valueLabelDisplay="auto"
+                    step={5}
+                    marks={true}
+                    min={5}
+                    color="white"
+                    max={60}
+                    onChange={handleRangeChange}
+                  />
+                </Box>
+              </Grid>
+
+            </Grid>
+
+
           </Box>
         </Box>
 
         {/* Button Section */}
-        <Box sx={styles.buttonSection}>
+        <Box>
           <Button
             color="success"
             style={styles.button}
@@ -758,6 +770,10 @@ const McqsPage = () => {
           </Button>
         </Box>
       </Box>
+
+
+
+
     </>
   );
 };

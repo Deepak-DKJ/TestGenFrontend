@@ -37,7 +37,7 @@ const darkTheme = createTheme({
         mode: 'dark',
         background: {
             default: '#121212',
-            paper: '#1d1d1d',
+            paper: '#2E2E2E',
         },
         text: {
             primary: '#ffffff',
@@ -206,7 +206,7 @@ const MyTests = () => {
             />
 
             <>
-                <NavBar />
+                <NavBar PAGE={"Dashboard"}/>
             </>
 
             {testData.length === 0 ? (
@@ -252,7 +252,7 @@ const MyTests = () => {
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
                                                 alignItems: 'center',
-                                                bgcolor: '#1D1D1D', // background for dark mode
+                                                bgcolor: '#2E2E2E', // background for dark mode
                                                 padding: 1,
                                             }}
                                         >

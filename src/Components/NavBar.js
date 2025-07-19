@@ -50,6 +50,7 @@ const StyledRating = styled(Rating)(({ theme }) => ({
         color: theme.palette.action.disabled,
     },
 }));
+const Offset = styled('div')(({ theme }) => theme.mixins.toolbar);
 
 const customIcons = {
     1: {
@@ -174,7 +175,7 @@ const styles = {
         transition: "background-color 0.3s ease",
     },
 };
-const NavBar = ({PAGE}) => {
+const NavBar = ({ PAGE }) => {
     const pages = ["Home", "Create", "Dashboard"];
     const settings = ["My Profile", "Sign out"];
     const [anchorElNav, setAnchorElNav] = useState(null);
@@ -257,12 +258,11 @@ const NavBar = ({PAGE}) => {
     };
 
     const handleCloseNavMenu = (page) => {
-        if(PAGE === "started")
-        {
+        if (PAGE === "started") {
             // eslint-disable-next-line no-restricted-globals
             if (confirm("Do you want to exit from the test? All progress will be lost!") === false) {
                 return;
-            }            
+            }
         }
         if (page === "Home")
             navigate('/testGenerator/')
@@ -327,7 +327,7 @@ const NavBar = ({PAGE}) => {
                 message={alert.msg}
             />
             <>
-                <AppBar position="sticky" style={{ backgroundColor: "#282828" }}>
+                <AppBar position="fixed" style={{ backgroundColor: "#282828" }}>
                     <Container maxWidth="xxl">
                         <Toolbar>
                             {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
@@ -362,7 +362,13 @@ const NavBar = ({PAGE}) => {
                                     <Button
                                         key={page}
                                         onClick={() => handleCloseNavMenu(page)}
-                                        sx={{ my: 2, color: "white", display: "block" }}
+                                        sx={{
+                                            my: 2,
+                                            color: PAGE === page ? "white" : "#ccc",
+                                            display: "block",
+                                            fontWeight: PAGE === page ? 700 : 400,
+                                            // borderBottom: PAGE === page ? "2px solid white" : "none"
+                                        }}
                                     >
                                         {page}
                                     </Button>
@@ -446,6 +452,7 @@ const NavBar = ({PAGE}) => {
                         </Toolbar>
                     </Container>
                 </AppBar>
+                <Offset />
 
                 <ThemeProvider theme={darkTheme}>
                     <Dialog
@@ -455,7 +462,7 @@ const NavBar = ({PAGE}) => {
                         aria-describedby="confirm-dialog-description"
                         TransitionComponent={Slide}
                     >
-                        <DialogTitle style={{color:'cyan', fontSize:'21px'}} className='text-center' id="confirm-dialog-title">
+                        <DialogTitle style={{ color: 'cyan', fontSize: '21px' }} className='text-center' id="confirm-dialog-title">
                             {modal}
                         </DialogTitle>
                         <DialogContent>

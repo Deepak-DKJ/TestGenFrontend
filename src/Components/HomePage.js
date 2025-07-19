@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -34,6 +34,41 @@ const styles = {
       marginTop: '20px'
   }
 };
+// Typewriter effect tagline component
+const tagline = "The only-AI based MCQs test generator tool you need !";
+function TypewriterTagline() {
+  const [displayed, setDisplayed] = React.useState("");
+  const [show, setShow] = React.useState(true);
+  const [idx, setIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    let timeout;
+    if (show && idx < tagline.length) {
+      timeout = setTimeout(() => {
+        setDisplayed(tagline.slice(0, idx + 1));
+        setIdx(idx + 1);
+      }, 40);
+    } else if (show && idx === tagline.length) {
+      timeout = setTimeout(() => setShow(false), 2000);
+    } else if (!show && idx > 0) {
+      timeout = setTimeout(() => {
+        setDisplayed(tagline.slice(0, idx - 1));
+        setIdx(idx - 1);
+      }, 30);
+    } else if (!show && idx === 0) {
+      timeout = setTimeout(() => setShow(true), 500);
+    }
+    return () => clearTimeout(timeout);
+  }, [idx, show]);
+
+  return (
+    <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', margin: '15px', minHeight: '32px' }}>
+      {displayed}
+      <span style={{ opacity: 0.7, fontWeight: "bold" }}>|</span>
+    </Typography>
+  );
+}
+
 const HomePage = () => {
   const navigate = useNavigate();
   const GotoMcqsPage = () => {
@@ -41,8 +76,8 @@ const HomePage = () => {
   };
 
   const steps = [
-    { title: 'TestGen.AI', description: 'AI-powered MCQ test generator, helps you to generate & attempt customized tests from any text.' },
-    { title: 'Upload/Paste Text', description: 'A user can upload a text document or directly paste text & generate their desired number of questions.' },
+    { title: 'TestGen.AI', description: 'AI-powered MCQ test generator, helps you to generate & attempt customized tests from any text/file.' },
+    { title: 'Upload File/Paste Text', description: 'A user can upload a document or directly paste text & generate their desired number of questions.' },
     { title: 'MCQs with Timer', description: 'Take the generated MCQ-based test in a timed environment along with negative marking.' },
     { title: 'Review & Analysis', description: 'Provides test review, analysis, and retake options, along with the scorecards in graphical format' }
   ];
@@ -50,11 +85,7 @@ const HomePage = () => {
   return (
     <ThemeProvider theme={darkTheme}>
       <Container>
-        <Box sx={{ textAlign: 'center', mb: 0 }}>
-          {/* <Typography variant="h3"style={{margin:"20px"}} gutterBottom>
-            Welcome to TestGen.AI
-          </Typography> */}
-          
+        <Box sx={{ textAlign: 'center', mb: 0, minHeight: '50vh' }}>
           <img src="/testgen.png" alt="TestGen.AI Logo" width="400px" />
         </Box>
 
@@ -78,9 +109,9 @@ const HomePage = () => {
           ))}
         </Grid>
           
-        <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', margin: '15px' }}>
-          The only-AI based MCQs test generator tool you need !
-        </Typography>
+        {/* Typewriter animated tagline */}
+        <TypewriterTagline />
+{/* // Typewriter effect tagline component */}
         <div style={styles.buttonContainer}>
           <button style={styles.button} onClick={GotoMcqsPage}>
                     Get Started

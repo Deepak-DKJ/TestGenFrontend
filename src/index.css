@@ -1,7 +1,6 @@
-body{
-  /* background-color: black; */
-  background: linear-gradient(to bottom, #5A616A, #5A616A);
-  color: white
+body {
+  color: white;
+  background-color: black;
 }
 
 .btn-circle { 

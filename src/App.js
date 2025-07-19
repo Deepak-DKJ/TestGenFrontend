@@ -10,9 +10,24 @@ import { TestProvider } from './Context/TestContext';
 import McqTestPage from './Components/Testpages/McqTestPage';
 import MyTests from './Components/MyTests';
 import StartTest from './Components/StartTest';
+import { createTheme, ThemeProvider } from '@mui/material';
+const darkTheme = createTheme({
+    palette: {
+      mode: 'dark',
+      primary: {
+        main: '#00FFFF',
+      },
+      background: {
+        default: '#121212',
+        paper: '#1e1e1e',
+      },
+    },
+  });
+
 function App() {
   return (
     <>
+     <ThemeProvider theme={darkTheme}>
       <TestProvider>
         <BrowserRouter>
           <Routes>
@@ -30,6 +45,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </TestProvider>
+      </ThemeProvider>
     </>
   );
 }
