@@ -260,7 +260,7 @@ const McqsPage = () => {
       // };
       let authToken = localStorage.getItem("token");
       // console.log(authToken);
-      const response = await axios.post(`${baseUrl}/mcqs/addtes`, data, {
+      const response = await axios.post(`${baseUrl}/mcqs/addtest`, data, {
         headers: {
           // "Content-Type": "multipart/form-data", // let Axios set the proper boundary
           //  "Token": authToken,               
