@@ -241,6 +241,18 @@ const McqsPage = () => {
       });
       return;
     }
+    // Check file size if file exists
+    if (file.length > 0) {
+      const maxSizeMB = 4.5;
+      const fileSizeMB = file[0].size / (1024 * 1024);
+      if (fileSizeMB > maxSizeMB) {
+        setAlert({
+          vis: true,
+          msg: `File size exceeds ${maxSizeMB} MB. Please upload a smaller file!`,
+        });
+        return;
+      }
+    }
     // console.log(file)
     // const formData = new FormData();
     // formData.append("uploadedDoc", file);
