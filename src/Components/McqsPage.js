@@ -620,7 +620,7 @@ const McqsPage = () => {
                 variant="subtitle1"
                 sx={{ color: "#ccc", marginBottom: "15px", textAlign: 'center' }}
               >
-                Start Uploading any File (PDF, Image, Text, Doc) below, and then hit on Generate:
+                Upload a File of size &lt; 5MB (PDF, Image, Text) below, and then hit on Generate.
               </Typography>
               <ThemeProvider theme={createTheme({ palette: { mode: "dark" } })}>
 
