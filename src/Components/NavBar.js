@@ -332,8 +332,10 @@ const NavBar = ({ PAGE }) => {
                         <Toolbar>
                             {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
                             <img
+                                onClick={() => navigate('/testGenerator/')}
                                 src="/onoo.png"
                                 alt="Logo"
+                                style={{ cursor: "pointer" }}
                                 width="58"
                                 height="44"
                                 className="mx-1 d-inline-block align-text-top"

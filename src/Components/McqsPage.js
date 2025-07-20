@@ -138,6 +138,7 @@ const McqsPage = () => {
   const [alignment, setAlignment] = React.useState('MEDIUM');
 
   const handleChangeAlignMent = (event, newAlignment) => {
+    if (newAlignment !== null) 
     setAlignment(newAlignment);
   };
 
