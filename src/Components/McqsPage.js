@@ -5,53 +5,48 @@ import TextField from "@mui/material/TextField";
 import FileUpload from "react-material-file-upload";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Button, Box, Typography, Grid } from "@mui/material";
-
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
-import NorthEast from '@mui/icons-material/NorthEast';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
 import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import SaveIcon from '@mui/icons-material/Save';
-import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import Snackbar from "@mui/material/Snackbar";
 import { useNavigate } from "react-router-dom";
 import { Slide } from "@mui/material";
 import axios from "axios";
-import { CubeSpinner, SwapSpinner } from "react-spinners-kit";
-import InputLabel from "@mui/material/InputLabel";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import FormControl from "@mui/material/FormControl";
-
 import LoadingButton from '@mui/lab/LoadingButton';
 import Alert from "@mui/material/Alert";
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import ClearIcon from '@mui/icons-material/Clear';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+ import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import Select from "@mui/material/Select";
 import NavBar from "./NavBar";
 import PropTypes from 'prop-types';
 import { useTheme } from '@mui/material/styles';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { keyframes } from '@emotion/react';
+
+const flickerAnimation = keyframes`
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+`;
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -153,6 +148,7 @@ const McqsPage = () => {
     vis: false,
     msg: "",
   });
+   const [progressMessage, setProgressMessage] = useState('');
   const [saveLoad, setSaveLoad] = useState(false)
   const [testTitle, setTestTitle] = useState("")
   const [openEditTest, setOpenEditTest] = useState(false);
@@ -232,13 +228,53 @@ const McqsPage = () => {
   const handleRangeChange = (event, value) => {
     setNumOfQs(value);
   };
+  const [iconSpinner, setIconSpinner] = useState(<CloudUploadIcon frontColor="cyan" />);
 
+  //  These messages show up first just after the call is made
+  const msgSet = [
+    { msg: "Uploading Document/Text . . .", duration: 6000, iconSpin: <CloudUploadIcon sx={{fontSize:'3rem'}} /> },
+    { msg: "Parsing provided content . . .", duration: 15000, iconSpin: <ManageSearchIcon sx={{fontSize:'3rem'}} /> },
+    { msg: "Deeply analyzing the Core Topics . . .", duration: 20000, iconSpin: <TipsAndUpdatesIcon sx={{fontSize:'3rem'}} /> },
+    { msg: "Crafting conceptual questions . . .", duration: 15000, iconSpin: <PsychologyIcon sx={{fontSize:'3rem'}} /> },
+    { msg: "Ensuring questions match the Difficulty Level . . .", duration: 15000, iconSpin: <AssignmentTurnedInIcon sx={{fontSize:'3rem'}} /> },
+    { msg: `Generating ~${numOfQs} high quality MCQs. . .`, duration: 30000, iconSpin: <AutoAwesomeIcon sx={{fontSize:'3rem'}} /> },
+    { msg: "Finalizing and Formatting your Test . . .", duration: 0, iconSpin: <ChecklistIcon sx={{fontSize:'3rem'}} /> },
+  ];
+
+  useEffect(() => {
+    if (isLoading) {
+      let currentIndex = 0;
+      let timer;
+
+      const showNextMessage = () => {
+        if (currentIndex < msgSet.length) {
+          setProgressMessage(msgSet[currentIndex].msg);
+          setIconSpinner(msgSet[currentIndex].iconSpin)
+          const currentDuration = msgSet[currentIndex].duration;
+
+          if (currentDuration > 0) {
+            timer = setTimeout(() => {
+              currentIndex++;
+              showNextMessage();
+            }, currentDuration);
+          }
+        }
+      };
+      showNextMessage();
+
+      // Cleanup function to clear the timeout if the component unmounts
+      // or if the loading state changes before all messages are shown.
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [isLoading, numOfQs]);
   const handleGenMcqs = async () => {
     if (open === true) setOpen(false);
     if ((inputData.trim() === "" || inputData.length === 0) && (file.length === 0)) {
       setAlert({
         vis: true,
-        msg: "Empty text. Please provide the input!",
+        msg: "Please provide a file/text input!",
       });
       return;
     }
@@ -254,33 +290,18 @@ const McqsPage = () => {
         return;
       }
     }
-    // console.log(file)
-    // const formData = new FormData();
-    // formData.append("uploadedDoc", file);
     // generate MCQs logic
-    try {
       setIsLoading(true);
+    try {
       const data = new FormData();
       data.append("inp", inputData);
       data.append("qsns", numOfQs);
       data.append("lvl", alignment);
       data.append("uploadedDoc", file[0]);
-      // console.log(file[0])
-      // const data = {
-      //   inp: inputData,
-      //   qsns: numOfQs,
-      //   file: file
-      // };
       let authToken = localStorage.getItem("token");
-      // console.log(authToken);
       const response = await axios.post(`${baseUrl}/mcqs/addtest`, data, {
-        headers: {
-          // "Content-Type": "multipart/form-data", // let Axios set the proper boundary
-          //  "Token": authToken,               
-
-          Token: authToken, // Set the Authorization header with Bearer token
-          // withCredentials: true,
-          // "Access-Control-Allow-Origin": "*", 
+        headers: {           
+          Token: authToken, 
         },
       });
       const dat = response.data;
@@ -296,19 +317,14 @@ const McqsPage = () => {
         btn.click()
       setIsLoading(false);
     } catch (err) {
-      setIsLoading(false);
       console.log("Error1: ", err);
       console.log("Error2: ", err.response);
-      setIsLoading(false)
       if (err.response)
         setAiMsg(err.response.data.airesp);
       const btn = document.getElementById("infosnackbar");
       if (btn) btn.click();
     }
   };
-  // const handleFileChange = (event) => {
-  //   setFile(event.target.files[0]);
-  // };
 
   const handlePaste = () => {
     navigator.clipboard.readText()
@@ -346,11 +362,7 @@ const McqsPage = () => {
       setDur(e.target.value)
   }
 
-  const [fileType, setFileType] = useState(".pdf")
-  const handleFileTypeChange = (event) => {
-    setFileType(event.target.value); // Update the state based on selected file type
-  };
-
+ 
   const [corAns, setCorAns] = useState(4);
   const handleChangeCorAns = (event) => {
     setCorAns(event.target.value);
@@ -371,11 +383,11 @@ const McqsPage = () => {
       justifyContent: "center",
       alignItems: "center",
       flexDirection: "column",
-      padding: "20px",
+      padding: "10px",
     },
     inputHalf1: {
       flex: 1,
-      margin: "15px",
+      margin: "10px",
       backgroundColor: "#2E2E2E",
       padding: "15px",
       // padding: "5px 25px 20px",
@@ -383,7 +395,7 @@ const McqsPage = () => {
     },
     inputHalf: {
       flex: 1,
-      margin: "15px",
+      margin: "10px",
       backgroundColor: "#2E2E2E",
       // padding: "15px",
       padding: "5px 25px 25px",
@@ -401,56 +413,75 @@ const McqsPage = () => {
     },
 
     button: {
-      marginLeft: "20px",
-      marginTop: "25px",
-      padding: "15px 25px",
+      marginLeft: "0px",
+      marginTop: "20px",
+      padding: "10px 25px",
       fontSize: "16px",
       fontWeight: "bold",
       backgroundColor: "#4caf50", // Green color for the "My Tests" button
       color: "#fff",
-      borderRadius: "28px",
+      borderRadius: "15px",
       cursor: "pointer",
       transition: "background-color 0.3s ease",
     },
     myTestsButton: {
-      padding: "15px 25px", // Add more padding to make it bigger
+      padding: "10px 25px", // Add more padding to make it bigger
       fontSize: "16px", // Larger text
       fontWeight: "bold",
-      marginTop: "25px",
+      marginTop: "10px",
       backgroundColor: "#1976d2",
       color: "#fff",
-      borderRadius: "28px", // Rounded corners
+      borderRadius: "15px", // Rounded corners
       cursor: "pointer",
       transition: "background-color 0.3s ease",
     },
   };
 
   return (
-    <>
-      {isLoading && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark overlay with less opacity
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1300, // Ensure it overlays other elements
-          }}
-        >
-          {read === true ? (
-            <SwapSpinner size={50} color="cyan" />
-          ) : (
-            <CubeSpinner size={50} frontColor="cyan" />
-          )}
-
-        </Box>
-      )}
-
+     <>
+     {isLoading && (
+  <Box
+    sx={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0, 0, 0, 0.80)", // Slightly darker overlay for better text contrast
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1300,
+    }}
+  >
+    {/* This inner Box is the key to the solution */}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column', // Stack items vertically
+        alignItems: 'center',    // Center items horizontally
+        gap: 1.5,                  // Adds a nice space between the spinner and the text
+      }}
+    >
+        <Box sx={{ animation: `${flickerAnimation} 1.5s infinite` }}>
+              {iconSpinner}
+            </Box>
+      
+      {/* Use MUI's Typography component for better styling and accessibility */}
+      <Typography 
+        sx={{ 
+          color: '#ccc',        // Make text white
+          fontWeight: 'medium',   // Make it slightly bold
+          fontSize: '1rem',     // Make it a bit larger
+          textAlign: 'center',    // Ensure text is centered if it wraps
+        }}
+      >
+        {progressMessage}
+      </Typography> 
+    </Box>
+  </Box>
+)}
+  
       <Snackbar
         autoHideDuration={3000}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
@@ -462,8 +493,22 @@ const McqsPage = () => {
           });
         }}
         TransitionComponent={Slide}
-        message={alert.msg}
-      />
+       >
+        <Alert
+          severity="info"
+          variant="filled"
+          sx={{
+            width: "100%",
+            color: "#fff",
+            bgcolor: "#222",
+            border: "1px solid #333",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+            fontWeight: 500,
+          }}
+        >
+          {alert.msg}
+        </Alert>
+      </Snackbar>
       <ThemeProvider theme={darkTheme}>
         <Button id="savetest" style={{ display: "none" }} variant="outlined" onClick={handleOpenEditTest}>
           Slide in alert dialog
@@ -596,12 +641,12 @@ const McqsPage = () => {
       <Box sx={styles.container}>
         <Typography
           variant="h5"
-          sx={{ marginBottom: "20px", color: "white" }}
+          sx={{ marginBottom: "20px", color: "#ccc", textAlign: 'center' }}
         >
-          Hello {name}, Welcome back !
+          Hi {name}, Welcome back !
         </Typography>
 
-        <Box sx={{ bgcolor: 'background.paper', width: "60%" }}>
+        <Box sx={{ bgcolor: 'background.paper', width: { xs: '100%', md: '65%' } }}>
           <AppBar position="static">
             <Tabs
               value={value}
@@ -654,7 +699,7 @@ const McqsPage = () => {
             <Box sx={styles.inputHalf}>
               <Typography
                 variant="subtitle2"
-                sx={{ textAlign:'center', color: "#ccc", marginBottom: "5px" }}
+                sx={{ textAlign: 'center', color: "#ccc", marginBottom: "5px" }}
               >
                 Enter your text below & click on generate &nbsp;
                 <Tooltip title="Paste Text">
@@ -663,7 +708,7 @@ const McqsPage = () => {
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Delete Text">
+                <Tooltip title="Clear Text">
                   <IconButton onClick={() => setInputData("")}>
                     <ClearIcon />
                   </IconButton>
@@ -704,22 +749,22 @@ const McqsPage = () => {
           </TabPanel>
 
 
-          <Box sx={{ marginBottom: "20px" }}>
+          <Box sx={{ p: 0, marginBottom: "8px"}}>
 
             <Grid container
               spacing={2}
-              gap={10}
-              direction="row"
+              direction={{ xs: 'column', md: 'row' }}
               sx={{
+                marginTop:"-35px",
                 justifyContent: "center",
                 alignItems: "center",
               }}>
-              <Grid size={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography variant="subtitle1" sx={{ color: "#ccc" }}>
-                    Choose Difficulty level
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
+                  <Typography variant="subtitle1" sx={{ color: "#ccc", mb: { xs: 1, sm: 0 } }}>
+                    Choose Difficulty level &nbsp;
                   </Typography>
-                  &nbsp;&nbsp;&nbsp;
+                     
                   <ToggleButtonGroup
                     color={alignment === "MEDIUM" ? ("primary") : (alignment === "EASY" ? ("success") : ("error"))}
                     size="small"
@@ -734,24 +779,25 @@ const McqsPage = () => {
                   </ToggleButtonGroup>
                 </Box>
               </Grid>
-              <Grid size={6}>
-
-                <Typography variant="subtitle1" sx={{ color: "#ccc" }}>
-                  Please select the number of questions &nbsp;
-                  <span className="badge" style={{ fontWeight: "500", fontSize: "14px", backgroundColor: "#3B3B3B", color: 'white' }}>{numOfQs}</span>
-                </Typography>
-                <Box sx={styles.sliderContainer}>
-                  <Slider
-                    aria-label="questions"
-                    value={numOfQs}
-                    valueLabelDisplay="auto"
-                    step={5}
-                    marks={true}
-                    min={5}
-                    color="white"
-                    max={60}
-                    onChange={handleRangeChange}
-                  />
+              <Grid item xs={12} md={6}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="subtitle1" sx={{ color: "#ccc" }}>
+                    Please select the number of questions &nbsp; 
+                    <span className="badge" style={{ fontWeight: "500", fontSize: "14px", backgroundColor: "#3B3B3B", color: 'white', padding: '2px 8px', borderRadius: '12px' }}>{numOfQs}</span>
+                  </Typography>
+                  <Box sx={styles.sliderContainer}>
+                    <Slider
+                      aria-label="questions"
+                      value={numOfQs}
+                      valueLabelDisplay="auto"
+                      step={5}
+                      marks={true}
+                      min={5}
+                      sx={{ color: 'white' }}
+                      max={60}
+                      onChange={handleRangeChange}
+                    />
+                  </Box>
                 </Box>
               </Grid>
 
@@ -762,13 +808,14 @@ const McqsPage = () => {
         </Box>
 
         {/* Button Section */}
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center' }}>
           <Button
             color="success"
             style={styles.button}
             variant="contained"
             size="large"
             onClick={handleGenMcqs}
+            sx={{ width: { xs: '100%', sm: 'auto' }, margin: { xs: '10px 0'} }}
           >
             Generate Test
           </Button>
@@ -776,16 +823,13 @@ const McqsPage = () => {
             style={styles.myTestsButton}
             variant="contained"
             size="large"
-            sx={{ marginLeft: "20px" }}
+            sx={{ width: { xs: '100%', sm: 'auto' }, marginLeft: { sm: "20px" } }}
             onClick={handleMyTests}
           >
             My Tests
           </Button>
         </Box>
       </Box>
-
-
-
 
     </>
   );

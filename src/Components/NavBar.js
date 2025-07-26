@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Button, Box, Typography, Grid } from "@mui/material";
+import { Button, Box, Typography, Grid, useMediaQuery } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import TextField from "@mui/material/TextField";
@@ -38,6 +38,7 @@ import axios from "axios";
 import { TestContext } from "../Context/TestContext";
 
 import Snackbar from "@mui/material/Snackbar";
+import { useTheme } from "@emotion/react";
 const StyledRating = styled(Rating)(({ theme }) => ({
     // '& .MuiRating-iconEmpty .MuiSvgIcon-root': {
     //     color: theme.palette.action.disabled,
@@ -51,7 +52,6 @@ const StyledRating = styled(Rating)(({ theme }) => ({
     },
 }));
 const Offset = styled('div')(({ theme }) => theme.mixins.toolbar);
-
 const customIcons = {
     1: {
         icon: <SentimentVeryDissatisfiedIcon fontSize="large" color="error" />,
@@ -112,70 +112,15 @@ const darkTheme = createTheme({
     },
 });
 const styles = {
-    sliderContainer: {
-        width: "50%", // Adjust slider width
-        margin: "10px auto", // Center the slider
-    },
-    container: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-        padding: "20px",
-    },
-    inputSection: {
-        display: "flex",
-        justifyContent: "space-between",
-        width: "100%",
-        padding: "20px",
-        marginBottom: "10px",
-    },
-    inputHalf: {
-        flex: 1,
-        margin: "0 20px",
-        backgroundColor: "#2E2E2E",
-        padding: "20px",
-        borderRadius: "10px",
-    },
     textField: {
         backgroundColor: "#3E3E3E",
         borderRadius: "10px",
     },
-    uploadBox: {
-        padding: "20px",
-        borderRadius: "10px",
-        border: "1px solid #555",
-        backgroundColor: "#2E2E2E",
-    },
-    sliderSection: {
-        width: "100%",
-        textAlign: "center",
-        marginBottom: "10px",
-    },
-
-    button: {
-        marginLeft: "20px",
-        padding: "15px 25px",
-        fontSize: "18px",
-        fontWeight: "bold",
-        backgroundColor: "#4caf50", // Green color for the "My Tests" button
-        color: "#fff",
-        borderRadius: "28px",
-        cursor: "pointer",
-        transition: "background-color 0.3s ease",
-    },
-    myTestsButton: {
-        padding: "15px 25px", // Add more padding to make it bigger
-        fontSize: "18px", // Larger text
-        fontWeight: "bold",
-        backgroundColor: "#1976d2",
-        color: "#fff",
-        borderRadius: "28px", // Rounded corners
-        cursor: "pointer",
-        transition: "background-color 0.3s ease",
-    },
 };
-const NavBar = ({ PAGE }) => {
+const NavBar = ({ PAGE, REVIEW }) => {
+    const theme = useTheme(); 
+const fullScreen = useMediaQuery(theme.breakpoints.down('sm')); 
+
     const pages = ["Home", "Create", "Dashboard"];
     const settings = ["My Profile", "Sign out"];
     const [anchorElNav, setAnchorElNav] = useState(null);
@@ -196,9 +141,43 @@ const NavBar = ({ PAGE }) => {
     }
 
     const handleLaunchModal = (md) => {
+          handleCloseNavMenu()
         setModal(md)
         setOpen(true)
     }
+     const handleProfileAction = async (setting) => {
+        handleCloseUserMenu();
+        if (setting === "Sign out") {
+            if (PAGE === "started" && !REVIEW) {
+            if (!window.confirm("Do you want to exit the test? All progress will be lost!")) {
+                return;
+            }
+        }
+            localStorage.removeItem('token');
+            navigate("/testGenerator/login");
+        }
+        if (setting === "My Profile") {
+            handleLaunchModal(setting)
+            try {
+                // console.log("READY")
+                let authToken = localStorage.getItem('token')
+                // console.log(authToken)
+                const response = await axios.get(`${baseUrl}/mcqs/getprofile`, {
+                    headers: {
+                        Token: authToken,
+                    },
+                });
+                const dat = response.data
+                setProfile(dat)
+                // setShowProgress(false)
+            }
+            catch (err) {
+                console.log(err)
+                // setShowProgress(false)
+            }
+        }
+    };
+
 
     const [rating, setRating] = React.useState(null);
     const [hover, setHover] = React.useState(-1);
@@ -215,9 +194,6 @@ const NavBar = ({ PAGE }) => {
         userName = (name[0][0] + name[0][name[0].length - 1])
     }
     const navigate = useNavigate()
-    const handleDurChange = (e) => {
-        setDur(e.target.value)
-    }
     const [alert, setAlert] = useState({
         vis: false,
         msg: "",
@@ -249,66 +225,39 @@ const NavBar = ({ PAGE }) => {
         }
     }
 
-    const handleOpenNavMenu = (event) => {
-        setAnchorElNav(event.currentTarget);
-    };
+    const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
 
-    const handleOpenUserMenu = (event) => {
-        setAnchorElUser(event.currentTarget);
-    };
+      const handleCloseNavMenu = () => setAnchorElNav(null);
 
-    const handleCloseNavMenu = (page) => {
-        if (PAGE === "started") {
-            // eslint-disable-next-line no-restricted-globals
-            if (confirm("Do you want to exit from the test? All progress will be lost!") === false) {
+      const handleNavMenuClick = (page) => {
+        if (PAGE === "started" && !REVIEW) {
+            if (!window.confirm("Do you want to exit the test? All progress will be lost!")) {
                 return;
             }
         }
-        if (page === "Home")
-            navigate('/testGenerator/')
-        else if (page === "Create")
-            navigate('/testGenerator/mcqs/create')
-        else if (page === "Dashboard")
-            navigate('/testGenerator/mcqs/mytests')
-        setAnchorElNav(null);
-    };
+        // Simplified navigation
+        const path = {
+            "Home": '/testGenerator/',
+            "Create": '/testGenerator/mcqs/create',
+            "Dashboard": '/testGenerator/mcqs/mytests'
+        }[page];
 
-    const handleCloseUserMenu = () => {
-        setAnchorElUser(null);
+        if (path) navigate(path);
+        handleCloseNavMenu();
     };
+     const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
+
+   const handleCloseUserMenu = () => setAnchorElUser(null);
     const [profile, setProfile] = useState(null)
 
-    const handleProfile = async (set) => {
-        // console.log(set)
-        if (set === "Sign out") {
-            localStorage.removeItem('token');
-            navigate("/testGenerator/login")
-            return
-        }
-        if (set === "My Profile") {
-            handleLaunchModal(set)
-            try {
-                // console.log("READY")
-                let authToken = localStorage.getItem('token')
-                // console.log(authToken)
-                const response = await axios.get(`${baseUrl}/mcqs/getprofile`, {
-                    headers: {
-                        Token: authToken,
-                    },
-                });
-                const dat = response.data
-                setProfile(dat)
-                // setShowProgress(false)
+    const handleImageClick = () => {
+        if (PAGE === "started" && !REVIEW) {
+            if (!window.confirm("Do you want to exit the test? All progress will be lost!")) {
+                return;
             }
-            catch (err) {
-                console.log(err)
-                // setShowProgress(false)
-            }
-            return
         }
+        navigate('/testGenerator/');
     }
-
-
 
 
     return (
@@ -328,24 +277,29 @@ const NavBar = ({ PAGE }) => {
             />
             <>
                 <AppBar position="fixed" style={{ backgroundColor: "#282828" }}>
-                    <Container maxWidth="xxl">
+                    <Container maxWidth="xxl" sx={{margin:"-5px"}}>
                         <Toolbar>
+                             <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', mr: 2 }}>
                             {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
-                            <img
-                                onClick={() => navigate('/testGenerator/')}
+                            <Tooltip  title="Test Gen AI">
+                                <img
+                                onClick={handleImageClick}
                                 src="/onoo.png"
                                 alt="Logo"
                                 style={{ cursor: "pointer" }}
-                                width="58"
-                                height="44"
+                                width="48"
+                                height="35"
                                 className="mx-1 d-inline-block align-text-top"
                             />
+                            </Tooltip>
                             <Typography
                                 variant="h6"
                                 noWrap
                                 component="a"
-                                href="/testGenerator"
+                                onClick={handleImageClick}
+                                // href="/testGenerator"
                                 sx={{
+                                    cursor:'pointer',
                                     mr: 8,
                                     display: { xs: "none", md: "flex" },
                                     fontFamily: "monospace",
@@ -358,12 +312,39 @@ const NavBar = ({ PAGE }) => {
                             >
                                 Testgen.ai
                             </Typography>
+</Box>
+                                  {/* ====== MOBILE VIEW ====== */}
+                            <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+                            <IconButton size="small" aria-label="navigation menu" aria-controls="menu-appbar-mobile" aria-haspopup="true" onClick={handleOpenNavMenu} color="inherit">
+                                <MenuIcon />
+                            </IconButton>
+                            <Menu id="menu-appbar-mobile" anchorEl={anchorElNav} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} keepMounted transformOrigin={{ vertical: 'top', horizontal: 'left' }} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu}>
+                                {pages.map((page) => (
+                                    <MenuItem key={page} onClick={() => handleNavMenuClick(page)}><Typography textAlign="center">{page}</Typography></MenuItem>
+                                ))}
+                                <Divider />
+                                <MenuItem onClick={() => handleLaunchModal("Ratings & Feedbacks")}><Typography textAlign="center">Feedbacks</Typography></MenuItem>
+                                <MenuItem onClick={() => handleLaunchModal("Contact Us")}><Typography textAlign="center">Contact Us</Typography></MenuItem>
+                            </Menu>
+                        </Box>
+                        
+                        <Box sx={{ display: { xs: 'flex', md: 'none' }, flexGrow: 1, justifyContent: 'center' }}>
+                           {/* <img onClick={() => navigate('/testGenerator/')} src="/onoo.png" alt="Logo" style={{ cursor: "pointer", width: 40, height: 32 }}/> */}
+                            <Typography variant="h6" noWrap component="a" href="/testGenerator" sx={{ ml:1, fontFamily: 'monospace', fontWeight: 700, color: 'inherit', textDecoration: 'none' }}>
+                               Testgen.ai
+                            </Typography>
+                        </Box>
+
+                        {/* --- Mobile Logo --- */}
+                        {/* <Typography variant="h5" noWrap component="a" href="/testGenerator" sx={{ mr: 2, display: { xs: 'flex', md: 'none' }, flexGrow: 1, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '.1rem', color: 'inherit', textDecoration: 'none' }}>
+                           Testgen.ai
+                        </Typography> */}
 
                             <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
                                 {pages.map((page) => (
                                     <Button
                                         key={page}
-                                        onClick={() => handleCloseNavMenu(page)}
+                                        onClick={() => handleNavMenuClick(page)}
                                         sx={{
                                             my: 2,
                                             color: PAGE === page ? "white" : "#ccc",
@@ -377,80 +358,30 @@ const NavBar = ({ PAGE }) => {
                                 ))}
                             </Box>
 
-
-                            <Button
-                                sx={{ my: 2, color: "white", display: "block", marginRight: '10px' }}
-                                onClick={() => handleLaunchModal("Ratings & Feedbacks")}
-                            >
+                            <Box sx={{ flexGrow: 0, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+                            <Button sx={{ my: 2, color: "white", display: "block", mr: 1 }} onClick={() => handleLaunchModal("Ratings & Feedbacks")}>
                                 Feedbacks
                             </Button>
-
-                            <Button
-                                sx={{ my: 2, color: "white", display: "block", marginRight: '40px' }}
-                                onClick={() => handleLaunchModal("Contact Us")}
-                            >
+                            <Button sx={{ my: 2, color: "white", display: "block", mr: 3 }} onClick={() => handleLaunchModal("Contact Us")}>
                                 Contact Us
                             </Button>
+                        </Box>
 
-                            <Box sx={{ flexGrow: 0 }}>
-
-
-                                <Tooltip title="User logged in">
-                                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                        {/* <Button sx={{ my: 2, color: 'white', display: 'block', marginRight:'20px' }}>Ratings & Feedbacks</Button> */}
-                                        <Avatar
-                                            sx={{
-                                                color: "black",
-                                                backgroundColor: "cyan",
-                                                width: 45,
-                                                height: 45,
-                                                paddingTop: "2px"
-                                            }}
-                                        >
-                                            {userName.toUpperCase()}
-                                        </Avatar>
-                                    </IconButton>
-                                </Tooltip>
-                                <Menu
-                                    sx={{
-                                        mt: "45px",
-                                        "& .MuiPaper-root": {
-                                            backgroundColor: "#333", // Dark background for the menu
-                                            color: "white", // White text color
-                                        },
-                                    }}
-                                    id="menu-appbar"
-                                    anchorEl={anchorElUser}
-                                    anchorOrigin={{
-                                        vertical: "top",
-                                        horizontal: "right",
-                                    }}
-                                    keepMounted
-                                    transformOrigin={{
-                                        vertical: "top",
-                                        horizontal: "right",
-                                    }}
-                                    open={Boolean(anchorElUser)}
-                                    onClose={handleCloseUserMenu}
-                                >
-                                    {settings.map((setting) => (
-                                        <MenuItem
-                                            key={setting}
-                                            sx={{
-                                                "&:hover": {
-                                                    backgroundColor: "#444", // Darker background on hover
-                                                },
-                                                color: "white", // White text color
-                                            }}
-                                            onClick={() => handleProfile(setting)}
-                                        >
-                                            <Typography sx={{ textAlign: "center" }}>
-                                                {setting === "My Profile" ? <AccountCircleIcon /> : <LogoutIcon />} {setting}
-                                            </Typography>
-                                        </MenuItem>
-                                    ))}
-                                </Menu>
-                            </Box>
+                               {/* ====== UNIVERSAL USER MENU ====== */}
+                        <Box sx={{ flexGrow: 0 }}>
+                            <Tooltip title="User Options">
+                                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                                    <Avatar sx={{ bgcolor: "cyan", color: "black", width: 35, height: 35, fontSize:"1rem" }}>{userName.toUpperCase()}</Avatar>
+                                </IconButton>
+                            </Tooltip>
+                            <Menu sx={{ mt: '45px' }} id="menu-appbar-user" anchorEl={anchorElUser} anchorOrigin={{ vertical: 'top', horizontal: 'right' }} keepMounted transformOrigin={{ vertical: 'top', horizontal: 'right' }} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
+                                {settings.map((setting) => (
+                                    <MenuItem key={setting} onClick={() => handleProfileAction(setting)}>
+                                        <Typography textAlign="center">{setting}</Typography>
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+                        </Box>
                         </Toolbar>
                     </Container>
                 </AppBar>
@@ -458,6 +389,7 @@ const NavBar = ({ PAGE }) => {
 
                 <ThemeProvider theme={darkTheme}>
                     <Dialog
+                    fullScreen={fullScreen}
                         open={open}
                         onClose={handleCloseModal}
                         aria-labelledby="confirm-dialog-title"
@@ -467,7 +399,7 @@ const NavBar = ({ PAGE }) => {
                         <DialogTitle style={{ color: 'cyan', fontSize: '21px' }} className='text-center' id="confirm-dialog-title">
                             {modal}
                         </DialogTitle>
-                        <DialogContent>
+                        <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
                             <DialogContentText id="confirm-dialog-description">
                                 {modal === "Ratings & Feedbacks" && (
                                     <div>

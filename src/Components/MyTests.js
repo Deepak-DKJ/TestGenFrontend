@@ -1,26 +1,16 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { TestContext } from '../Context/TestContext';
-import Slider from '@mui/material/Slider';
-import TextField from '@mui/material/TextField';
-import FileUpload from 'react-material-file-upload';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Button, Box, Typography, Grid } from '@mui/material';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
+import { Button, Box, Typography, Grid, Alert } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
 import Snackbar from '@mui/material/Snackbar';
 import { useNavigate } from 'react-router-dom'
 import { Slide } from '@mui/material';
 import axios from 'axios'
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import LinearProgress from '@mui/material/LinearProgress'; import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import LinearProgress from '@mui/material/LinearProgress';
 
 import { PieChart } from '@mui/x-charts/PieChart';
 
@@ -61,7 +51,10 @@ const darkTheme = createTheme({
         },
     },
 });
-
+function capitalizeFirstLetter(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 const MyTests = () => {
 
@@ -69,7 +62,7 @@ const MyTests = () => {
     const { baseUrl } = useContext(TestContext);
     const navigate = useNavigate()
     useEffect(() => {
-        if(!localStorage.getItem('token'))
+        if (!localStorage.getItem('token'))
             navigate("/testGenerator/login")
         const fetch_data = async () => {
             setShowProgress(true)
@@ -191,22 +184,35 @@ const MyTests = () => {
     return (
         <>
             <Snackbar
-                autoHideDuration={2000}
+                autoHideDuration={3000}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 open={alert.vis}
-
                 onClose={() => {
                     setAlert({
-                        "vis": false,
-                        "msg": ""
+                        vis: false,
+                        msg: "",
                     });
                 }}
                 TransitionComponent={Slide}
-                message={alert.msg}
-            />
+            >
+                <Alert
+                    severity="info"
+                    variant="filled"
+                    sx={{
+                        width: "100%",
+                        color: "#fff",
+                        bgcolor: "#222",
+                        border: "1px solid #333",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                        fontWeight: 500,
+                    }}
+                >
+                    {alert.msg}
+                </Alert>
+            </Snackbar>
 
             <>
-                <NavBar PAGE={"Dashboard"}/>
+                <NavBar PAGE={"Dashboard"} />
             </>
 
             {testData.length === 0 ? (
@@ -224,8 +230,8 @@ const MyTests = () => {
                 </>
             ) : (<ThemeProvider theme={darkTheme}>
 
-                <Box sx={{ padding: '20px', marginTop: "30px" }}>
-                    <Grid container spacing={3}>
+                <Box sx={{ padding: '20px', marginTop: "10px" }}>
+                    <Grid container spacing={3} justifyContent={"center"}>
                         {testData.map((test, index) => (
                             <Grid
                                 item
@@ -234,9 +240,9 @@ const MyTests = () => {
                                 md={4}
                                 lg={4.5}
                                 sx={{
-                                    marginLeft: index % 2 === 0 ? '10%' : '5%', // Add left padding for left-side cards
-                                    marginRight: index % 2 !== 0 ? '10%' : '0', // Add right padding for right-side cards
-                                    marginBottom: '20px', // Space between rows
+                                    // marginLeft: index % 2 === 0 ? '10%' : '5%', // Add left padding for left-side cards
+                                    // marginRight: index % 2 !== 0 ? '10%' : '0', // Add right padding for right-side cards
+                                    marginBottom: '10px', // Space between rows
                                     display: 'flex',
                                     flexDirection: 'column',
                                 }}
@@ -250,40 +256,65 @@ const MyTests = () => {
                                         <Box
                                             sx={{
                                                 display: 'flex',
+                                                flexDirection: { xs: 'column', sm: 'row' },
                                                 justifyContent: 'space-between',
-                                                alignItems: 'center',
+                                                alignItems: { xs: 'stretch', sm: 'center' },
                                                 bgcolor: '#2E2E2E', // background for dark mode
-                                                padding: 1,
+                                                padding: 0,
+                                                // gap:1
                                             }}
                                         >
-                                            {/* Left side with icon and title */}
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                                                 {test.score.split("/")[0] === "NA" ? (
                                                     <Tooltip title="Status: Incomplete">
-                                                        <AccessTimeIcon sx={{ color: "orange", marginBottom: '8px' }} />
+                                                        <AccessTimeIcon sx={{ color: "orange" }} />
                                                     </Tooltip>
                                                 ) : (
                                                     <Tooltip title="Status: Completed">
-                                                        <TaskAltIcon sx={{ color: "#1FBC0E", marginBottom: '8px' }} />
+                                                        <TaskAltIcon sx={{ color: "#1FBC0E" }} />
                                                     </Tooltip>
                                                 )}
                                                 <Typography
                                                     variant="h6"
-                                                    gutterBottom
-                                                    sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                                    noWrap // Prevents text from wrapping
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        color: 'text.primary',
+                                                        // These styles ensure long text is handled gracefully
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                    }}
                                                 >
-                                                    {test.title}
+                                                    {capitalizeFirstLetter(test.title)}
                                                 </Typography>
                                             </Box>
 
-                                            {/* Right side with badges and delete icon */}
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                Correct:<Tooltip title="Marks for correct answer">
-                                                    <span className="rounded-pill badge text-bg-success">{`+${test.correctAnswerPoints}`}</span>
-                                                </Tooltip>
-                                                Wrong:<Tooltip title="Negative marking for wrong answer">
-                                                    <span style={{paddingBottom:"6px"}} className="rounded-pill badge text-bg-danger">{`-${test.negativeMarking}`}</span>
-                                                </Tooltip>
+                                            {/* Right side: Badges and Delete Icon */}
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    // On mobile, space out the badges and icon. On desktop, group them.
+                                                    justifyContent: { xs: 'space-between', sm: 'flex-end' },
+                                                    gap: 1,
+                                                }}
+                                            >
+                                                {/* Group the badges together */}
+                                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+    <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', color: '#ccc', fontSize:"14px" }}>
+        Correct&nbsp;
+        <Tooltip title="Marks for correct answer">
+            <span className="badge" style={{ fontSize: "14px", backgroundColor: "", color: '#4CAF50', padding: '0px 0px', borderRadius: '12px' }}>{`+${test.correctAnswerPoints}`}</span>
+        </Tooltip>
+    </Typography>
+    <Typography cvariant='body2' sx={{ display: 'flex', alignItems: 'center', color: '#ccc' , fontSize:"14px"}}>
+        Wrong&nbsp;
+        <Tooltip title="Negative marking for wrong answer">
+            <span className="badge" style={{ fontSize: "14px", backgroundColor: "", color: '#F44336', padding: '0px 0px', borderRadius: '12px' }}>{`-${test.negativeMarking}`}</span>
+        </Tooltip>
+    </Typography>
+</Box>
+
                                                 <Tooltip title="Delete this test">
                                                     <IconButton
                                                         aria-label="delete"
@@ -298,13 +329,13 @@ const MyTests = () => {
 
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 0 }}>
                                             <Typography variant="subtitle2" sx={{ fontSize: '0.8rem', color: "text.secondary" }}>
-                                                Total Questions: <strong style={{ color: "white" }}>{test.totalQuestions}</strong>
+                                                Total Questions&nbsp; <strong style={{ color: "white" }}>{test.totalQuestions}</strong>
                                             </Typography>
                                             <Typography variant="subtitle2" sx={{ fontSize: '0.8rem', color: "text.secondary" }}>
-                                                Test Duration: <strong style={{ color: "white" }}>{test.testDuration} mins</strong>
+                                                Test Duration&nbsp; <strong style={{ color: "white" }}>{test.testDuration} mins</strong>
                                             </Typography>
                                             <Typography variant="subtitle2" sx={{ fontSize: '0.8rem', color: "text.secondary" }}>
-                                                Score: <strong style={{ color: "white" }}>{test.score}</strong>
+                                                Score&nbsp; <strong style={{ color: "white" }}>{test.score}</strong>
                                             </Typography>
                                         </Box>
                                         <Divider
@@ -478,7 +509,7 @@ const MyTests = () => {
                                         {/* Right: Legend for the Pie chart */}
                                         <div style={{ flex: 2, marginRight: '30px' }}>
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                               
+
                                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                                     <div style={{ width: '16px', height: '16px', backgroundColor: 'green', marginRight: '10px' }}></div>
                                                     <Typography variant="subtitle2" sx={{ fontSize: '1rem', color: "text.secondary" }}>

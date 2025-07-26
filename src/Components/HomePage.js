@@ -85,9 +85,13 @@ const HomePage = () => {
   return (
     <ThemeProvider theme={darkTheme}>
       <Container>
-        <Box sx={{ textAlign: 'center', mb: 0, minHeight: '50vh' }}>
-          <img src="/testgen.png" alt="TestGen.AI Logo" width="400px" />
-        </Box>
+        <Box sx={{ textAlign: 'center', mb: 0, minHeight: '50vh', p: 0 }}> {/* Added padding for spacing */}
+  <img 
+    src="/testgen.png" 
+    alt="TestGen.AI Logo" 
+    style={{ width: '100%', maxWidth: '400px', height: 'auto' }} 
+  />
+</Box>
 
         <Grid container spacing={4}>
           {steps.map((step, index) => (

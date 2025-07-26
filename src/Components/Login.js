@@ -5,6 +5,7 @@ import { TestContext } from '../Context/TestContext';
 import Alert from './Alert';
 import { useNavigate } from 'react-router-dom'
 
+import GoogleLoginButton from './GoogleLoginButton';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -25,6 +26,24 @@ const Login = () => {
   })
 
   const handleLogin = async () => {
+     if (!email || !password) {
+    setAlert({
+      "vis": true,
+      "msg": "Email and password are required."
+    });
+    return; // Stop the function from proceeding
+  }
+
+  // Email format validation using a simple regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setAlert({
+      "vis": true,
+      "msg": "Please enter a valid email address."
+    });
+    return;
+  }
+
     const data = {
       "email": email,
       "password": password
@@ -92,8 +111,29 @@ const Login = () => {
     <section>
       
       <div className="signin">
+        <h1 style={{ fontSize: "2.0em", color: "cyan", textAlign: "center", textTransform: "uppercase", marginBottom: "0px" }}>Sign In</h1>
+          <Box
+  sx={{
+    textAlign: 'center',
+    mb: 0,
+    width: '300px', // Adjust this value to your design needs
+    minHeight: '240px', // Adjust this value to match the image's aspect ratio
+    // To ensure the Box itself is centered within its parent
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    // Flex utilities to center the image perfectly once loaded
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+>
+            <img src="/testgen.png" alt="TestGen.AI Logo" width="80%" />
+          </Box>
+          <div style={{display:'flex', justifyContent:'center', alignItems:'center', marginBottom:"20px"}}>
+            <GoogleLoginButton />
+          </div>
+
         <div className="content">
-          <h2>Sign In</h2>
           <div className="form">
             <div className="inputBox">
               <input value={email} onChange={(e) => setEmail(e.target.value)} type="text" required />
