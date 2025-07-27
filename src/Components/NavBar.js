@@ -284,7 +284,7 @@ const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
                             <Tooltip  title="Test Gen AI">
                                 <img
                                 onClick={handleImageClick}
-                                src="/onoo.png"
+                                src="/testgen2.png"
                                 alt="Logo"
                                 style={{ cursor: "pointer" }}
                                 width="48"
